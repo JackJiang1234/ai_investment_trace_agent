@@ -1,0 +1,33 @@
+name: Connectivity Check
+
+# 里程碑 1：验证海外 GitHub runner 能否访问中国行情/公告接口。
+# 手动触发；日志中打印的真实行情即为连通性证据。
+on:
+  workflow_dispatch:
+
+jobs:
+  connectivity-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # 离线单元测试：不发真实网络请求，排除集成测试。
+      - name: Unit tests (offline)
+        run: dotnet test --no-build --configuration Release --filter "Category!=Integration"
+
+      # 关键步骤：在海外 runner 上实拉 A股 + 港股行情。
+      # 拉取失败时 Console 返回非零退出码，本步骤即失败，任务状态如实反映连通性。
+      - name: Connectivity probe (real fetch)
+        run: dotnet run --no-build --configuration Release --project src/Agent.Console
