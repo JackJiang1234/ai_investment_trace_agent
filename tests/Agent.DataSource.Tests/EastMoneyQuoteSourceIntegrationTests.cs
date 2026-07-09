@@ -29,7 +29,9 @@ public class EastMoneyQuoteSourceIntegrationTests
 
         quote.Should().NotBeNull();
         quote!.Name.Should().NotBeNullOrWhiteSpace();
-        quote.Price.Should().BeGreaterThan(0m);
+        // 现价 f43 在非交易时段（盘前/停牌）会返回 0，故只断言其非负；
+        // 昨收 f60 始终有值，用它验证接口确实取到了真实数据。
+        quote.Price.Should().BeGreaterThanOrEqualTo(0m);
         quote.PreviousClose.Should().BeGreaterThan(0m);
     }
 }
