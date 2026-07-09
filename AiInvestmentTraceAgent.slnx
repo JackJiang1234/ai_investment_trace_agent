@@ -3,9 +3,15 @@
     <Project Path="src/Agent.Console/Agent.Console.csproj" />
     <Project Path="src/Agent.Core/Agent.Core.csproj" />
     <Project Path="src/Agent.DataSource/Agent.DataSource.csproj" />
+    <Project Path="src/Agent.Delivery/Agent.Delivery.csproj" />
+    <Project Path="src/Agent.Reporting/Agent.Reporting.csproj" />
+    <Project Path="src/Agent.Summarizer/Agent.Summarizer.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Agent.Console.Tests/Agent.Console.Tests.csproj" />
     <Project Path="tests/Agent.Core.Tests/Agent.Core.Tests.csproj" />
     <Project Path="tests/Agent.DataSource.Tests/Agent.DataSource.Tests.csproj" />
+    <Project Path="tests/Agent.Delivery.Tests/Agent.Delivery.Tests.csproj" />
+    <Project Path="tests/Agent.Reporting.Tests/Agent.Reporting.Tests.csproj" />
   </Folder>
 </Solution>

@@ -1,0 +1,37 @@
+# 股票追踪报告 {{ DateText }}
+
+## 组合概览
+
+- 上涨 **{{ Summary.Advancers }}** / 下跌 **{{ Summary.Decliners }}** / 平盘 **{{ Summary.Unchanged }}**
+- 平均涨跌幅：**{{ Summary.AverageChangePercent | math.round 2 }}%**
+{{- if Summary.TopGainer }}
+- 领涨：{{ Summary.TopGainer.Quote.Name }}（{{ Summary.TopGainer.Quote.ChangePercent | math.round 2 }}%）
+{{- end }}
+{{- if Summary.TopLoser }}
+- 领跌：{{ Summary.TopLoser.Quote.Name }}（{{ Summary.TopLoser.Quote.ChangePercent | math.round 2 }}%）
+{{- end }}
+
+{{~ alerted = Alerted ~}}
+{{~ if alerted.size > 0 ~}}
+## ⚠ 异动提醒
+
+{{~ for s in alerted ~}}
+- **{{ s.Quote.Name }}**（{{ s.Quote.Code }}）：{{~ for a in s.Alerts ~}} {{ a.Description }}{{ if !for.last }}；{{ end }}{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+
+## 个股明细
+
+| 代码 | 名称 | 现价 | 涨跌幅 | 量比 | 换手率 | MA5 | MA20 | MA60 | 近5日 | 近20日 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+{{~ for s in Stocks ~}}
+| {{ s.Quote.Code }} | {{ s.Quote.Name }} | {{ s.Quote.Price }} | {{ s.Quote.ChangePercent }}% | {{ s.Quote.VolumeRatio }} | {{ s.Quote.TurnoverRate }}% | {{ if s.Ma5 }}{{ s.Ma5 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Ma20 }}{{ s.Ma20 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Ma60 }}{{ s.Ma60 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Return5 }}{{ s.Return5 | math.round 2 }}%{{ else }}—{{ end }} | {{ if s.Return20 }}{{ s.Return20 | math.round 2 }}%{{ else }}—{{ end }} |
+{{~ end ~}}
+
+{{~ if AiSummary ~}}
+## AI 摘要
+
+{{ AiSummary }}
+{{~ end ~}}
+
+> 本报告由规则自动生成，仅供个人跟踪参考，不构成任何投资建议。

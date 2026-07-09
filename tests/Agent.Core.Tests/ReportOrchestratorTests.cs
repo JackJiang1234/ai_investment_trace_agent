@@ -1,0 +1,135 @@
+using Agent.Core;
+using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
+
+namespace Agent.Core.Tests;
+
+public class ReportOrchestratorTests
+{
+    private readonly IQuoteSource _quotes = Substitute.For<IQuoteSource>();
+    private readonly IKlineSource _klines = Substitute.For<IKlineSource>();
+    private readonly IReportRenderer _renderer = Substitute.For<IReportRenderer>();
+    private readonly IReportDelivery _delivery = Substitute.For<IReportDelivery>();
+    private readonly ISummarizer _summarizer = Substitute.For<ISummarizer>();
+
+    private static readonly DateOnly Date = new(2026, 7, 8);
+
+    private static Quote Quote(string code, decimal price, decimal changePercent = 1m) => new()
+    {
+        Code = StockCode.Parse(code),
+        Name = code,
+        Price = price,
+        PreviousClose = price,
+        Open = price,
+        High = price,
+        Low = price,
+        ChangeAmount = 0m,
+        ChangePercent = changePercent,
+        Volume = 0,
+        Turnover = 0m,
+        TurnoverRate = 0m,
+        VolumeRatio = 0m,
+    };
+
+    private static DailyBar Bar(decimal close, decimal changePercent = 2m) => new()
+    {
+        Date = Date,
+        Open = close,
+        Close = close,
+        High = close,
+        Low = close,
+        Volume = 0,
+        Amount = 0,
+        ChangePercent = changePercent,
+        TurnoverRate = 0,
+    };
+
+    private ReportOrchestrator Create(AgentOptions options)
+    {
+        _renderer.Render(Arg.Any<DailyReport>(), Arg.Any<ReportFormat>())
+            .Returns(ci => $"[{ci.ArgAt<ReportFormat>(1)}]");
+        _summarizer.SummarizeAsync(Arg.Any<DailyReport>(), Arg.Any<CancellationToken>())
+            .Returns((string?)null);
+        return new ReportOrchestrator(_quotes, _klines, _renderer, _delivery, _summarizer,
+            options, NullLogger<ReportOrchestrator>.Instance);
+    }
+
+    private static AgentOptions OptionsFor(params string[] codes) => new()
+    {
+        Stocks = codes.Select(c => new StockConfig { Code = c }).ToList(),
+        Report = new ReportOptions { Formats = [ReportFormat.Html, ReportFormat.Markdown] },
+    };
+
+    [Fact]
+    public async Task RunAsync_BuildsReportForEachConfiguredStock()
+    {
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Quote(ci.ArgAt<StockCode>(0).ToString(), 100m));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(100m)]);
+
+        var report = await Create(OptionsFor("600519.SH", "00700.HK")).RunAsync(Date);
+
+        report.Stocks.Should().HaveCount(2);
+        report.Date.Should().Be(Date);
+    }
+
+    [Fact]
+    public async Task RunAsync_SkipsStockThatThrows_WithoutFailingWholeRun()
+    {
+        _quotes.GetQuoteAsync(Arg.Is<StockCode>(c => c.Symbol == "600519"), Arg.Any<CancellationToken>())
+            .Returns(Quote("600519.SH", 100m));
+        _quotes.GetQuoteAsync(Arg.Is<StockCode>(c => c.Symbol == "000001"), Arg.Any<CancellationToken>())
+            .Returns<Quote?>(_ => throw new HttpRequestException("boom"));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(100m)]);
+
+        var report = await Create(OptionsFor("600519.SH", "000001.SZ")).RunAsync(Date);
+
+        report.Stocks.Should().ContainSingle().Which.Quote.Code.Symbol.Should().Be("600519");
+    }
+
+    [Fact]
+    public async Task RunAsync_NullQuote_IsSkipped()
+    {
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>()).Returns((Quote?)null);
+
+        var report = await Create(OptionsFor("600519.SH")).RunAsync(Date);
+
+        report.Stocks.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RunAsync_ZeroPrice_FallsBackToLatestBarClose()
+    {
+        // 盘前现价 f43=0 → 用最新K线收盘价回退
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(Quote("600519.SH", price: 0m, changePercent: 0m));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(close: 1199.30m, changePercent: 0.88m)]);
+
+        var report = await Create(OptionsFor("600519.SH")).RunAsync(Date);
+
+        var s = report.Stocks.Should().ContainSingle().Subject;
+        s.Quote.Price.Should().Be(1199.30m);
+        s.Quote.ChangePercent.Should().Be(0.88m);
+    }
+
+    [Fact]
+    public async Task RunAsync_RendersAndDeliversEachConfiguredFormat()
+    {
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(Quote("600519.SH", 100m));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(100m)]);
+
+        await Create(OptionsFor("600519.SH")).RunAsync(Date);
+
+        await _delivery.Received(1).DeliverAsync(
+            Arg.Is<RenderedReport>(r =>
+                r.Contents.ContainsKey(ReportFormat.Html) &&
+                r.Contents.ContainsKey(ReportFormat.Markdown)),
+            Arg.Any<CancellationToken>());
+    }
+}

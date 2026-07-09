@@ -22,6 +22,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Agent.Core\Agent.Core.csproj" />
+    <ProjectReference Include="..\..\src\Agent.Reporting\Agent.Reporting.csproj" />
+    <ProjectReference Include="..\..\src\Agent.Delivery\Agent.Delivery.csproj" />
+    <ProjectReference Include="..\..\src\Agent.Summarizer\Agent.Summarizer.csproj" />
   </ItemGroup>
 
 </Project>
