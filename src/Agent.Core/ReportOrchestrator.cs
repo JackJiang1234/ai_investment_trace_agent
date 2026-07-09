@@ -10,6 +10,7 @@ public sealed class ReportOrchestrator
 {
     private readonly IQuoteSource _quoteSource;
     private readonly IKlineSource _klineSource;
+    private readonly IFundFlowSource _fundFlowSource;
     private readonly IReportRenderer _renderer;
     private readonly IReportDelivery _delivery;
     private readonly ISummarizer _summarizer;
@@ -19,6 +20,7 @@ public sealed class ReportOrchestrator
     public ReportOrchestrator(
         IQuoteSource quoteSource,
         IKlineSource klineSource,
+        IFundFlowSource fundFlowSource,
         IReportRenderer renderer,
         IReportDelivery delivery,
         ISummarizer summarizer,
@@ -27,6 +29,7 @@ public sealed class ReportOrchestrator
     {
         _quoteSource = quoteSource;
         _klineSource = klineSource;
+        _fundFlowSource = fundFlowSource;
         _renderer = renderer;
         _delivery = delivery;
         _summarizer = summarizer;
@@ -100,11 +103,28 @@ public sealed class ReportOrchestrator
             var bars = await _klineSource.GetDailyBarsAsync(code, _options.Report.KlineLookbackDays, ct);
             quote = ApplyClosePriceFallback(quote, bars);
 
-            return StockAnalyzer.Analyze(quote, bars, _options.Alerts);
+            var analysis = StockAnalyzer.Analyze(quote, bars, _options.Alerts);
+            return analysis with { FundFlow = await TryGetFundFlowAsync(code, ct) };
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
             _logger.LogError(ex, "拉取失败，跳过：{Code}", code);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 拉取资金流；资金流为补充信息，失败不应影响该股入报告，降级为 null。
+    /// </summary>
+    private async Task<FundFlow?> TryGetFundFlowAsync(StockCode code, CancellationToken ct)
+    {
+        try
+        {
+            return await _fundFlowSource.GetLatestFundFlowAsync(code, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "资金流获取失败，降级为空：{Code}", code);
             return null;
         }
     }

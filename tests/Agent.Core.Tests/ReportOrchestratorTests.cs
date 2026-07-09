@@ -9,6 +9,7 @@ public class ReportOrchestratorTests
 {
     private readonly IQuoteSource _quotes = Substitute.For<IQuoteSource>();
     private readonly IKlineSource _klines = Substitute.For<IKlineSource>();
+    private readonly IFundFlowSource _fundFlows = Substitute.For<IFundFlowSource>();
     private readonly IReportRenderer _renderer = Substitute.For<IReportRenderer>();
     private readonly IReportDelivery _delivery = Substitute.For<IReportDelivery>();
     private readonly ISummarizer _summarizer = Substitute.For<ISummarizer>();
@@ -51,7 +52,7 @@ public class ReportOrchestratorTests
             .Returns(ci => $"[{ci.ArgAt<ReportFormat>(1)}]");
         _summarizer.SummarizeAsync(Arg.Any<DailyReport>(), Arg.Any<CancellationToken>())
             .Returns((string?)null);
-        return new ReportOrchestrator(_quotes, _klines, _renderer, _delivery, _summarizer,
+        return new ReportOrchestrator(_quotes, _klines, _fundFlows, _renderer, _delivery, _summarizer,
             options, NullLogger<ReportOrchestrator>.Instance);
     }
 
@@ -131,5 +132,47 @@ public class ReportOrchestratorTests
                 r.Contents.ContainsKey(ReportFormat.Html) &&
                 r.Contents.ContainsKey(ReportFormat.Markdown)),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RunAsync_AttachesFundFlowToAnalysis()
+    {
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(Quote("600519.SH", 100m));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(100m)]);
+        var flow = new FundFlow
+        {
+            Date = Date,
+            MainNetInflow = -388600352m,
+            SuperLargeNetInflow = -393122096m,
+            LargeNetInflow = 4521744m,
+            MediumNetInflow = 388776592m,
+            SmallNetInflow = -176247m,
+        };
+        _fundFlows.GetLatestFundFlowAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(flow);
+
+        var report = await Create(OptionsFor("600519.SH")).RunAsync(Date);
+
+        report.Stocks.Should().ContainSingle()
+            .Which.FundFlow!.MainNetInflow.Should().Be(-388600352m);
+    }
+
+    [Fact]
+    public async Task RunAsync_FundFlowFailure_DegradesToNull_WithoutDroppingStock()
+    {
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(Quote("600519.SH", 100m));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(100m)]);
+        _fundFlows.GetLatestFundFlowAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns<FundFlow?>(_ => throw new HttpRequestException("fund flow down"));
+
+        var report = await Create(OptionsFor("600519.SH")).RunAsync(Date);
+
+        var stock = report.Stocks.Should().ContainSingle().Subject;
+        stock.FundFlow.Should().BeNull();
+        stock.Quote.Code.Symbol.Should().Be("600519");
     }
 }

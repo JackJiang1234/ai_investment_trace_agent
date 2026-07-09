@@ -27,6 +27,9 @@ public sealed record StockAnalysis
     /// <summary>是否创近 20 日新低。</summary>
     public bool IsNewLow20 { get; init; }
 
+    /// <summary>当日资金流向；无数据或获取失败为 null。</summary>
+    public FundFlow? FundFlow { get; init; }
+
     /// <summary>命中的异动提醒。</summary>
     public IReadOnlyList<TriggeredAlert> Alerts { get; init; } = [];
 

@@ -45,6 +45,17 @@ public class ReportPipelineSmokeTests : IDisposable
                 new() { Date = new(2026, 7, 7), Open = 459m, Close = 461.2m, High = 479.8m, Low = 457m, Volume = 1, Amount = 1m, ChangePercent = 2.04m, TurnoverRate = 0.6m },
                 new() { Date = new(2026, 7, 8), Open = 461.2m, Close = 476.4m, High = 482.8m, Low = 460.6m, Volume = 1, Amount = 1m, ChangePercent = 6.30m, TurnoverRate = 0.54m },
             });
+        var fundFlows = Substitute.For<IFundFlowSource>();
+        fundFlows.GetLatestFundFlowAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(new FundFlow
+            {
+                Date = new(2026, 7, 8),
+                MainNetInflow = 980_042_000m,
+                SuperLargeNetInflow = 997_388_832m,
+                LargeNetInflow = -17_346_832m,
+                MediumNetInflow = 1_708_122_368m,
+                SmallNetInflow = 514_965_024m,
+            });
 
         var options = new AgentOptions
         {
@@ -58,7 +69,7 @@ public class ReportPipelineSmokeTests : IDisposable
         };
 
         var orchestrator = new ReportOrchestrator(
-            quotes, klines,
+            quotes, klines, fundFlows,
             new ScribanReportRenderer(),
             new FileReportDelivery(_dir),
             new NoOpSummarizer(),
@@ -72,7 +83,9 @@ public class ReportPipelineSmokeTests : IDisposable
 
         html.Should().Contain("腾讯控股").And.Contain("6.3");
         html.Should().Contain("量比"); // 异动提醒区
+        html.Should().Contain("9.8"); // 主力净流入 9.80 亿
         md.Should().Contain("腾讯控股").And.Contain("2026-07-08");
+        md.Should().Contain("主力净流入");
     }
 
     public void Dispose()
