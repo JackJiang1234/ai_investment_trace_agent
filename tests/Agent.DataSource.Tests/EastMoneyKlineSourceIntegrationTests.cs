@@ -30,4 +30,18 @@ public class EastMoneyKlineSourceIntegrationTests
         bars.Should().BeInAscendingOrder(b => b.Date);
         bars[^1].Close.Should().BeGreaterThan(0m);
     }
+
+    [Theory]
+    [InlineData("600519.SH")]
+    [InlineData("00700.HK")]
+    public async Task GetYearStartCloseAsync_RealEndpoint_ReturnsPositiveClose(string code)
+    {
+        using var client = CreateClient();
+        var source = new EastMoneyKlineSource(client);
+
+        var close = await source.GetYearStartCloseAsync(StockCode.Parse(code), 2026);
+
+        close.Should().NotBeNull();
+        close!.Value.Should().BeGreaterThan(0m);
+    }
 }

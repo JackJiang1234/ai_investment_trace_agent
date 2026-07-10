@@ -33,6 +33,26 @@ public sealed class EastMoneyKlineSource : IKlineSource
                   $"&fields1={Fields1}&fields2={Fields2}" +
                   $"&klt={Klt}&fqt={Fqt}&end={EndSentinel}&lmt={count}";
 
+        return await FetchBarsAsync(code, url, cancellationToken);
+    }
+
+    public async Task<decimal?> GetYearStartCloseAsync(
+        StockCode code, int year, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(year);
+
+        // 从年初起按日期升序取，首根即当年首个交易日；lmt 留足覆盖整年。
+        var url = $"{BaseUrl}?secid={code.EastMoneySecId}" +
+                  $"&fields1={Fields1}&fields2={Fields2}" +
+                  $"&klt={Klt}&fqt={Fqt}&beg={year:D4}0101&end={EndSentinel}&lmt=400";
+
+        var bars = await FetchBarsAsync(code, url, cancellationToken);
+        return bars.Count > 0 ? bars[0].Close : null;
+    }
+
+    private async Task<IReadOnlyList<DailyBar>> FetchBarsAsync(
+        StockCode code, string url, CancellationToken cancellationToken)
+    {
         HttpRequestException? lastError = null;
         for (var attempt = 1; attempt <= MaxAttempts; attempt++)
         {
