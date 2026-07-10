@@ -6,8 +6,11 @@ public enum ReportFormat
     /// <summary>Markdown。</summary>
     Markdown,
 
-    /// <summary>HTML。</summary>
+    /// <summary>HTML（带 &lt;style&gt; 的响应式，浏览器/GitHub Pages 查看）。</summary>
     Html,
+
+    /// <summary>公众号导出：全内联样式、无 &lt;style&gt;/&lt;script&gt;/&lt;head&gt;，可粘贴进微信公众号编辑器。</summary>
+    WeChatHtml,
 }
 
 /// <summary>已渲染的报告：各格式的文本内容。</summary>

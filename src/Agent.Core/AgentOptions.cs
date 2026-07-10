@@ -1,6 +1,6 @@
 namespace Agent.Core;
 
-/// <summary>单只股票的配置项。</summary>
+/// <summary>单只股票的配置项。持仓/买卖点字段均可空（观察池股票通常不填持仓）。</summary>
 public sealed class StockConfig
 {
     /// <summary>股票代码，形如 600519.SH / 00700.HK。</summary>
@@ -8,6 +8,18 @@ public sealed class StockConfig
 
     /// <summary>分组标签，如"核心持仓"/"观察池"。</summary>
     public string? Group { get; set; }
+
+    /// <summary>持股份数；观察池可空。</summary>
+    public long? Shares { get; set; }
+
+    /// <summary>成本价（每股，原币种）；观察池可空。</summary>
+    public decimal? CostPrice { get; set; }
+
+    /// <summary>理想买点：目标总市值（亿元人民币）。当前总市值(折人民币) 低于此值 → 可以击球。</summary>
+    public decimal? IdealBuyMarketCapYi { get; set; }
+
+    /// <summary>1 年内卖点：目标总市值（亿元人民币）。当前总市值(折人民币) 高于此值 → 提示可考虑卖出。</summary>
+    public decimal? SellMarketCapYi { get; set; }
 }
 
 /// <summary>公告追踪配置。</summary>
@@ -26,6 +38,9 @@ public sealed class AnnouncementOptions
     /// <summary>每只股票拉取的公告条数。</summary>
     public int Lookback { get; set; } = 20;
 
+    /// <summary>内容时间窗（天）：只保留近 N 天（本周）的公告/财报/风险。周跟踪默认 7。</summary>
+    public int LookbackDays { get; set; } = 7;
+
     /// <summary>港股例行公告排除关键词（英文，命中类型/标题即剔除，如每日披露/月报）。</summary>
     public List<string> HkExcludeTypes { get; set; } =
     [
@@ -33,14 +48,14 @@ public sealed class AnnouncementOptions
     ];
 }
 
-/// <summary>调度相关配置。</summary>
-public sealed class ScheduleOptions
+/// <summary>货币折算配置。</summary>
+public sealed class CurrencyOptions
 {
-    /// <summary>非交易日是否跳过生成。</summary>
-    public bool SkipNonTradingDays { get; set; } = true;
+    /// <summary>基准货币（组合汇总与买卖点阈值口径）。本期固定人民币。</summary>
+    public string BaseCurrency { get; set; } = "CNY";
 
-    /// <summary>节假日列表（ISO 日期，如 "2026-10-01"），用于交易日判断。</summary>
-    public List<string> Holidays { get; set; } = [];
+    /// <summary>汇率抓取失败时的回退静态汇率（币种 → 折人民币），如 HKD→0.87。</summary>
+    public Dictionary<string, decimal> StaticRates { get; set; } = new() { ["HKD"] = 0.87m };
 }
 
 /// <summary>报告输出配置。</summary>
@@ -74,8 +89,8 @@ public sealed class AgentOptions
         "问询", "商誉", "停牌", "下调评级", "立案", "风险警示",
     ];
 
-    /// <summary>调度配置。</summary>
-    public ScheduleOptions Schedule { get; set; } = new();
+    /// <summary>货币折算配置。</summary>
+    public CurrencyOptions Currency { get; set; } = new();
 
     /// <summary>报告输出配置。</summary>
     public ReportOptions Report { get; set; } = new();
