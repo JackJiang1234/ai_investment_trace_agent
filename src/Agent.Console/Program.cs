@@ -48,6 +48,23 @@ var orchestrator = host.Services.GetRequiredService<ReportOrchestrator>();
 // 报告日期取北京时间（UTC+8）当日；收盘后运行即当日收盘数据。
 var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(8));
 var dateText = today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+
+// 非交易日跳过（周末/配置的节假日），避免产出无意义报告。
+if (options.Schedule.SkipNonTradingDays)
+{
+    var holidays = options.Schedule.Holidays
+        .Select(h => DateOnly.TryParse(h, System.Globalization.CultureInfo.InvariantCulture, out var d)
+            ? (DateOnly?)d : null)
+        .OfType<DateOnly>()
+        .ToArray();
+
+    if (!TradingCalendar.IsTradingDay(today, holidays))
+    {
+        logger.LogInformation("{Date} 非交易日，跳过生成。", dateText);
+        return 0;
+    }
+}
+
 logger.LogInformation("开始生成 {Date} 追踪报告，共 {Count} 只股票……", dateText, options.Stocks.Count);
 
 var report = await orchestrator.RunAsync(today);

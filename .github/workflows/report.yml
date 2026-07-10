@@ -1,0 +1,45 @@
+name: Daily Report
+
+# 每交易日收盘后生成追踪报告并提交回仓库。
+# cron 为 UTC 且高峰期会延迟；09:00 UTC = 北京 17:00，收盘后留足缓冲。
+# 限定周一至周五触发；节假日由程序内交易日判断跳过（见 appsettings Schedule）。
+on:
+  schedule:
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build --configuration Release
+
+      - name: Unit tests (offline)
+        run: dotnet test --no-build --configuration Release --filter "Category!=Integration"
+
+      - name: Generate report
+        run: dotnet run --no-build --configuration Release --project src/Agent.Console
+
+      - name: Commit report back to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/
+          if git diff --staged --quiet; then
+            echo "无报告变更（可能为非交易日），跳过提交。"
+          else
+            git commit -m "chore(report): 追踪报告 $(date -u +%Y-%m-%d)"
+            git push
+          fi

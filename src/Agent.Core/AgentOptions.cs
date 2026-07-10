@@ -33,6 +33,16 @@ public sealed class AnnouncementOptions
     ];
 }
 
+/// <summary>调度相关配置。</summary>
+public sealed class ScheduleOptions
+{
+    /// <summary>非交易日是否跳过生成。</summary>
+    public bool SkipNonTradingDays { get; set; } = true;
+
+    /// <summary>节假日列表（ISO 日期，如 "2026-10-01"），用于交易日判断。</summary>
+    public List<string> Holidays { get; set; } = [];
+}
+
 /// <summary>报告输出配置。</summary>
 public sealed class ReportOptions
 {
@@ -66,6 +76,9 @@ public sealed class AgentOptions
         "减持", "质押", "冻结", "诉讼", "仲裁", "处罚", "违规", "ST", "退市",
         "问询", "商誉", "停牌", "下调评级", "立案", "风险警示",
     ];
+
+    /// <summary>调度配置。</summary>
+    public ScheduleOptions Schedule { get; set; } = new();
 
     /// <summary>报告输出配置。</summary>
     public ReportOptions Report { get; set; } = new();
