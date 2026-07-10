@@ -16,6 +16,14 @@
   .card .value { font-size: 1.3rem; font-weight: 600; }
   .alerts { background: #fff8f0; border: 1px solid #f0c088; border-radius: 8px; padding: 0.5rem 1rem; }
   .alerts li { margin: 0.25rem 0; }
+  .risk { background: #fff0f0; border-color: #e8a0a0; }
+  .tag { display: inline-block; background: #eee; color: #444; border-radius: 4px; padding: 0 0.4rem; font-size: 0.75rem; }
+  .ann-stock { font-size: 1rem; margin: 0.75rem 0 0.25rem; }
+  .ann-list { margin: 0; padding-left: 1.2rem; }
+  .ann-list li { margin: 0.15rem 0; font-size: 0.9rem; }
+  .ann-date { color: #888; font-variant-numeric: tabular-nums; }
+  a { color: #2a6; text-decoration: none; }
+  a:hover { text-decoration: underline; }
   .table-wrap { overflow-x: auto; }
   table { border-collapse: collapse; width: 100%; background: #fff; font-size: 0.9rem; }
   th, td { border: 1px solid #e5e5e5; padding: 0.4rem 0.6rem; text-align: right; white-space: nowrap; }
@@ -28,8 +36,11 @@
   @media (prefers-color-scheme: dark) {
     body { color: #e5e5e5; background: #1a1a1a; }
     .card, table, .alerts { background: #242424; border-color: #3a3a3a; }
+    .risk { background: #2e2020; border-color: #6a3a3a; }
+    .tag { background: #333; color: #ccc; }
     th { background: #2e2e2e; }
     .up { color: #ff6b6b; } .down { color: #51cf66; }
+    a { color: #6c9; }
   }
 </style>
 </head>
@@ -44,6 +55,15 @@
     <div class="card"><div class="label">平盘</div><div class="value muted">{{ Summary.Unchanged }}</div></div>
     <div class="card"><div class="label">平均涨跌幅</div><div class="value {{ if Summary.AverageChangePercent > 0 }}up{{ else if Summary.AverageChangePercent < 0 }}down{{ end }}">{{ Summary.AverageChangePercent | math.round 2 }}%</div></div>
   </div>
+
+  {{~ if RiskHits.size > 0 ~}}
+  <h2>🚨 风险提示</h2>
+  <ul class="alerts risk">
+    {{~ for h in RiskHits ~}}
+    <li><span class="tag">{{ h.MatchedKeyword }}</span> <strong>{{ h.StockName }}</strong>（{{ h.Code }}）：<a href="{{ h.Announcement.Url }}">{{ h.Announcement.Title }}</a></li>
+    {{~ end ~}}
+  </ul>
+  {{~ end ~}}
 
   {{~ alerted = Alerted ~}}
   {{~ if alerted.size > 0 ~}}
@@ -83,6 +103,22 @@
     </tbody>
   </table>
   </div>
+
+  {{~ has_ann = false ~}}
+  {{~ for s in Stocks ~}}{{~ if s.Announcements.size > 0 ~}}{{~ has_ann = true ~}}{{~ end ~}}{{~ end ~}}
+  {{~ if has_ann ~}}
+  <h2>近期公告</h2>
+  {{~ for s in Stocks ~}}
+  {{~ if s.Announcements.size > 0 ~}}
+  <h3 class="ann-stock">{{ s.Quote.Name }}（{{ s.Quote.Code }}）</h3>
+  <ul class="ann-list">
+    {{~ for a in s.Announcements ~}}
+    <li><span class="ann-date">{{ a.DateText }}</span> <span class="tag">{{ a.Type }}</span> <a href="{{ a.Url }}">{{ a.Title }}</a></li>
+    {{~ end ~}}
+  </ul>
+  {{~ end ~}}
+  {{~ end ~}}
+  {{~ end ~}}
 
   {{~ if AiSummary ~}}
   <h2>AI 摘要</h2>

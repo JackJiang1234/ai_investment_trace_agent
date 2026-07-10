@@ -56,6 +56,12 @@ public class ReportPipelineSmokeTests : IDisposable
                 MediumNetInflow = 1_708_122_368m,
                 SmallNetInflow = 514_965_024m,
             });
+        var announcements = Substitute.For<IAnnouncementSource>();
+        announcements.GetRecentAnnouncementsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(new Announcement[]
+            {
+                new() { Date = new(2026, 7, 8), Title = "腾讯控股:关于主要股东减持股份的公告", Type = "减持", Url = "https://x" },
+            });
 
         var options = new AgentOptions
         {
@@ -69,7 +75,7 @@ public class ReportPipelineSmokeTests : IDisposable
         };
 
         var orchestrator = new ReportOrchestrator(
-            quotes, klines, fundFlows,
+            quotes, klines, fundFlows, announcements,
             new ScribanReportRenderer(),
             new FileReportDelivery(_dir),
             new NoOpSummarizer(),
@@ -84,8 +90,11 @@ public class ReportPipelineSmokeTests : IDisposable
         html.Should().Contain("腾讯控股").And.Contain("6.3");
         html.Should().Contain("量比"); // 异动提醒区
         html.Should().Contain("9.8"); // 主力净流入 9.80 亿
+        html.Should().Contain("风险提示").And.Contain("减持"); // 风险提示区
+        html.Should().Contain("近期公告");
         md.Should().Contain("腾讯控股").And.Contain("2026-07-08");
         md.Should().Contain("主力净流入");
+        md.Should().Contain("风险提示").And.Contain("减持");
     }
 
     public void Dispose()

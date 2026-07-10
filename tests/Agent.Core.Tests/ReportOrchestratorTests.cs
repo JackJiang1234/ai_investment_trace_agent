@@ -10,11 +10,19 @@ public class ReportOrchestratorTests
     private readonly IQuoteSource _quotes = Substitute.For<IQuoteSource>();
     private readonly IKlineSource _klines = Substitute.For<IKlineSource>();
     private readonly IFundFlowSource _fundFlows = Substitute.For<IFundFlowSource>();
+    private readonly IAnnouncementSource _announcements = Substitute.For<IAnnouncementSource>();
     private readonly IReportRenderer _renderer = Substitute.For<IReportRenderer>();
     private readonly IReportDelivery _delivery = Substitute.For<IReportDelivery>();
     private readonly ISummarizer _summarizer = Substitute.For<ISummarizer>();
 
     private static readonly DateOnly Date = new(2026, 7, 8);
+
+    public ReportOrchestratorTests()
+    {
+        // 安全默认：无公告（避免 null）；个别测试可覆盖。
+        _announcements.GetRecentAnnouncementsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<Announcement>());
+    }
 
     private static Quote Quote(string code, decimal price, decimal changePercent = 1m) => new()
     {
@@ -52,8 +60,8 @@ public class ReportOrchestratorTests
             .Returns(ci => $"[{ci.ArgAt<ReportFormat>(1)}]");
         _summarizer.SummarizeAsync(Arg.Any<DailyReport>(), Arg.Any<CancellationToken>())
             .Returns((string?)null);
-        return new ReportOrchestrator(_quotes, _klines, _fundFlows, _renderer, _delivery, _summarizer,
-            options, NullLogger<ReportOrchestrator>.Instance);
+        return new ReportOrchestrator(_quotes, _klines, _fundFlows, _announcements,
+            _renderer, _delivery, _summarizer, options, NullLogger<ReportOrchestrator>.Instance);
     }
 
     private static AgentOptions OptionsFor(params string[] codes) => new()
@@ -174,5 +182,29 @@ public class ReportOrchestratorTests
         var stock = report.Stocks.Should().ContainSingle().Subject;
         stock.FundFlow.Should().BeNull();
         stock.Quote.Code.Symbol.Should().Be("600519");
+    }
+
+    [Fact]
+    public async Task RunAsync_RiskKeywordInAnnouncement_ProducesRiskHit()
+    {
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(Quote("600519.SH", 100m));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(100m)]);
+        _announcements.GetRecentAnnouncementsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(new Announcement[]
+            {
+                new() { Date = Date, Title = "关于控股股东股份质押的公告", Type = "股权质押", Url = "https://x" },
+                new() { Date = Date, Title = "关于召开股东大会的通知", Type = "日常经营", Url = "https://y" },
+            });
+
+        var report = await Create(OptionsFor("600519.SH")).RunAsync(Date);
+
+        report.RiskHits.Should().ContainSingle();
+        report.RiskHits[0].MatchedKeyword.Should().Be("质押");
+        report.RiskHits[0].StockName.Should().Be("600519.SH");
+        // 重要类型过滤：日常经营公告未命中 IncludeTypes，不进个股公告列表
+        report.Stocks[0].Announcements.Should().ContainSingle()
+            .Which.Title.Should().Contain("质押");
     }
 }

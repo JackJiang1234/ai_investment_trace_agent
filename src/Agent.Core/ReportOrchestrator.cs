@@ -11,6 +11,7 @@ public sealed class ReportOrchestrator
     private readonly IQuoteSource _quoteSource;
     private readonly IKlineSource _klineSource;
     private readonly IFundFlowSource _fundFlowSource;
+    private readonly IAnnouncementSource _announcementSource;
     private readonly IReportRenderer _renderer;
     private readonly IReportDelivery _delivery;
     private readonly ISummarizer _summarizer;
@@ -21,6 +22,7 @@ public sealed class ReportOrchestrator
         IQuoteSource quoteSource,
         IKlineSource klineSource,
         IFundFlowSource fundFlowSource,
+        IAnnouncementSource announcementSource,
         IReportRenderer renderer,
         IReportDelivery delivery,
         ISummarizer summarizer,
@@ -30,6 +32,7 @@ public sealed class ReportOrchestrator
         _quoteSource = quoteSource;
         _klineSource = klineSource;
         _fundFlowSource = fundFlowSource;
+        _announcementSource = announcementSource;
         _renderer = renderer;
         _delivery = delivery;
         _summarizer = summarizer;
@@ -55,6 +58,7 @@ public sealed class ReportOrchestrator
             Date = date,
             Summary = PortfolioSummary.From(analyses),
             Stocks = analyses,
+            RiskHits = CollectRiskHits(analyses),
         };
 
         var summary = await _summarizer.SummarizeAsync(report, cancellationToken);
@@ -104,7 +108,11 @@ public sealed class ReportOrchestrator
             quote = ApplyClosePriceFallback(quote, bars);
 
             var analysis = StockAnalyzer.Analyze(quote, bars, _options.Alerts);
-            return analysis with { FundFlow = await TryGetFundFlowAsync(code, ct) };
+            return analysis with
+            {
+                FundFlow = await TryGetFundFlowAsync(code, ct),
+                Announcements = await TryGetAnnouncementsAsync(code, ct),
+            };
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
@@ -127,6 +135,50 @@ public sealed class ReportOrchestrator
             _logger.LogWarning(ex, "资金流获取失败，降级为空：{Code}", code);
             return null;
         }
+    }
+
+    /// <summary>
+    /// 拉取并按重要类型过滤公告；公告为补充信息，失败降级为空列表。
+    /// </summary>
+    private async Task<IReadOnlyList<Announcement>> TryGetAnnouncementsAsync(
+        StockCode code, CancellationToken ct)
+    {
+        try
+        {
+            var raw = await _announcementSource.GetRecentAnnouncementsAsync(
+                code, _options.Announcements.Lookback, ct);
+            return AnnouncementFilter.FilterImportant(raw, _options.Announcements);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "公告获取失败，降级为空：{Code}", code);
+            return [];
+        }
+    }
+
+    /// <summary>扫描各股公告标题，汇总命中风险关键词的条目（跨个股）。</summary>
+    private IReadOnlyList<RiskHit> CollectRiskHits(IReadOnlyList<StockAnalysis> analyses)
+    {
+        var hits = new List<RiskHit>();
+        foreach (var analysis in analyses)
+        {
+            foreach (var ann in analysis.Announcements)
+            {
+                var keyword = RiskKeywordMatcher.FindMatch(ann.Title, _options.RiskKeywords);
+                if (keyword is not null)
+                {
+                    hits.Add(new RiskHit
+                    {
+                        Code = analysis.Quote.Code,
+                        StockName = analysis.Quote.Name,
+                        Announcement = ann,
+                        MatchedKeyword = keyword,
+                    });
+                }
+            }
+        }
+
+        return hits;
     }
 
     /// <summary>

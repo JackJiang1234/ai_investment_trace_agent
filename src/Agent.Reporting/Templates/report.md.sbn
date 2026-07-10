@@ -11,6 +11,14 @@
 - 领跌：{{ Summary.TopLoser.Quote.Name }}（{{ Summary.TopLoser.Quote.ChangePercent | math.round 2 }}%）
 {{- end }}
 
+{{~ if RiskHits.size > 0 ~}}
+## 🚨 风险提示
+
+{{~ for h in RiskHits ~}}
+- **[{{ h.MatchedKeyword }}]** {{ h.StockName }}（{{ h.Code }}）：[{{ h.Announcement.Title }}]({{ h.Announcement.Url }})
+{{~ end ~}}
+{{~ end ~}}
+
 {{~ alerted = Alerted ~}}
 {{~ if alerted.size > 0 ~}}
 ## ⚠ 异动提醒
@@ -26,6 +34,21 @@
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 {{~ for s in Stocks ~}}
 | {{ s.Quote.Code }} | {{ s.Quote.Name }} | {{ s.Quote.Price }} | {{ s.Quote.ChangePercent }}% | {{ s.Quote.VolumeRatio }} | {{ s.Quote.TurnoverRate }}% | {{ if s.Ma5 }}{{ s.Ma5 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Ma20 }}{{ s.Ma20 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Ma60 }}{{ s.Ma60 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Return5 }}{{ s.Return5 | math.round 2 }}%{{ else }}—{{ end }} | {{ if s.Return20 }}{{ s.Return20 | math.round 2 }}%{{ else }}—{{ end }} | {{ if s.FundFlow }}{{ s.FundFlow.MainNetInflowInYi | math.round 2 }}{{ else }}—{{ end }} |
+{{~ end ~}}
+
+{{~ has_ann = false ~}}
+{{~ for s in Stocks ~}}{{~ if s.Announcements.size > 0 ~}}{{~ has_ann = true ~}}{{~ end ~}}{{~ end ~}}
+{{~ if has_ann ~}}
+## 近期公告
+
+{{~ for s in Stocks ~}}
+{{~ if s.Announcements.size > 0 ~}}
+**{{ s.Quote.Name }}**（{{ s.Quote.Code }}）
+{{~ for a in s.Announcements ~}}
+- {{ a.DateText }} `{{ a.Type }}` [{{ a.Title }}]({{ a.Url }})
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 {{~ end ~}}
 
 {{~ if AiSummary ~}}

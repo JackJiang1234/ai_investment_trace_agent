@@ -30,6 +30,9 @@ public sealed record StockAnalysis
     /// <summary>当日资金流向；无数据或获取失败为 null。</summary>
     public FundFlow? FundFlow { get; init; }
 
+    /// <summary>经重要类型过滤后的近期公告。</summary>
+    public IReadOnlyList<Announcement> Announcements { get; init; } = [];
+
     /// <summary>命中的异动提醒。</summary>
     public IReadOnlyList<TriggeredAlert> Alerts { get; init; } = [];
 

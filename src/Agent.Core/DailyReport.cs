@@ -16,6 +16,9 @@ public sealed record DailyReport
     public IReadOnlyList<StockAnalysis> Alerted =>
         Stocks.Where(s => s.HasAlert).ToArray();
 
+    /// <summary>命中风险关键词的公告（风险提示区，跨个股汇总）。</summary>
+    public IReadOnlyList<RiskHit> RiskHits { get; init; } = [];
+
     /// <summary>AI 摘要（默认关闭时为 null）。</summary>
     public string? AiSummary { get; init; }
 }

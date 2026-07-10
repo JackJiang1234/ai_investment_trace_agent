@@ -30,6 +30,7 @@ static void ConfigureHttp(HttpClient client)
 builder.Services.AddHttpClient<IQuoteSource, EastMoneyQuoteSource>(ConfigureHttp);
 builder.Services.AddHttpClient<IKlineSource, EastMoneyKlineSource>(ConfigureHttp);
 builder.Services.AddHttpClient<IFundFlowSource, EastMoneyFundFlowSource>(ConfigureHttp);
+builder.Services.AddHttpClient<IAnnouncementSource, EastMoneyAnnouncementSource>(ConfigureHttp);
 builder.Services.AddSingleton<IReportRenderer, ScribanReportRenderer>();
 builder.Services.AddSingleton<IReportDelivery>(_ => new FileReportDelivery(options.Report.OutputDirectory));
 builder.Services.AddSingleton<ISummarizer, NoOpSummarizer>();
