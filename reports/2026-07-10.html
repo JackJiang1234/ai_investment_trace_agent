@@ -3,148 +3,146 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>股票追踪报告 2026-07-10</title>
+<title>股票追踪周报 2026-07-10</title>
 <style>
   :root { color-scheme: light dark; }
-  body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; margin: 0; padding: 1.5rem; line-height: 1.5; color: #1a1a1a; background: #fafafa; }
-  h1 { font-size: 1.5rem; margin: 0 0 0.25rem; }
-  h2 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; border-left: 4px solid #888; padding-left: 0.5rem; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; margin: 0 auto; max-width: 720px; padding: 1rem; line-height: 1.5; color: #1a1a1a; background: #fafafa; }
+  h1 { font-size: 1.35rem; margin: 0 0 0.25rem; }
+  h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; border-left: 4px solid #888; padding-left: 0.5rem; }
   .meta { color: #666; font-size: 0.85rem; margin-bottom: 1rem; }
-  .cards { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 0.75rem 1rem; min-width: 8rem; }
-  .card .label { color: #666; font-size: 0.8rem; }
-  .card .value { font-size: 1.3rem; font-weight: 600; }
-  .alerts { background: #fff8f0; border: 1px solid #f0c088; border-radius: 8px; padding: 0.5rem 1rem; }
-  .alerts li { margin: 0.25rem 0; }
-  .risk { background: #fff0f0; border-color: #e8a0a0; }
-  .tag { display: inline-block; background: #eee; color: #444; border-radius: 4px; padding: 0 0.4rem; font-size: 0.75rem; }
-  .ann-stock { font-size: 1rem; margin: 0.75rem 0 0.25rem; }
-  .ann-list { margin: 0; padding-left: 1.2rem; }
-  .ann-list li { margin: 0.15rem 0; font-size: 0.9rem; }
+  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .tile { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 0.6rem 0.8rem; }
+  .tile .label { color: #666; font-size: 0.78rem; }
+  .tile .value { font-size: 1.25rem; font-weight: 600; }
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 0.85rem 1rem; margin: 0.6rem 0; }
+  .card.hit { border-color: #e0483d; box-shadow: 0 0 0 1px #e0483d33; }
+  .card .head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+  .card .nm { font-size: 1.05rem; font-weight: 600; }
+  .card .cd { color: #888; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .card .px { font-size: 1.05rem; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.15rem 0.75rem; margin-top: 0.5rem; font-size: 0.88rem; }
+  .grid .k { color: #666; }
+  .grid .v { text-align: right; font-variant-numeric: tabular-nums; }
+  .badge { display: inline-block; border-radius: 999px; padding: 0.05rem 0.55rem; font-size: 0.78rem; font-weight: 600; }
+  .badge.buy { background: #fdeceb; color: #c0392b; }
+  .badge.sell { background: #eaf5ee; color: #1e8449; }
+  .badges { margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .up { color: #c0392b; } .down { color: #27ae60; } .muted { color: #aaa; }
+  .risk { background: #fff0f0; border: 1px solid #e8a0a0; border-radius: 8px; padding: 0.5rem 0.9rem; }
+  .risk li { margin: 0.2rem 0; }
+  .buypanel { background: #fdeceb; border: 1px solid #e0483d; border-radius: 8px; padding: 0.5rem 0.9rem; }
+  .tag { display: inline-block; background: #eee; color: #444; border-radius: 4px; padding: 0 0.4rem; font-size: 0.72rem; }
+  .ann { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+  .ann li { margin: 0.15rem 0; font-size: 0.85rem; }
   .ann-date { color: #888; font-variant-numeric: tabular-nums; }
-  .forecast { background: #f0f6ff; border-left: 3px solid #6aa; border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.9rem; }
+  .fin { margin-top: 0.5rem; font-size: 0.85rem; color: #444; background: #f4f6f8; border-radius: 6px; padding: 0.4rem 0.6rem; }
   a { color: #2a6; text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  .table-wrap { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; background: #fff; font-size: 0.9rem; }
-  th, td { border: 1px solid #e5e5e5; padding: 0.4rem 0.6rem; text-align: right; white-space: nowrap; }
-  th { background: #f0f0f0; text-align: center; }
-  td.name, td.code { text-align: left; }
-  .up { color: #c0392b; }      /* 涨：红 */
-  .down { color: #27ae60; }    /* 跌：绿 */
-  .muted { color: #aaa; }
-  .foot { color: #888; font-size: 0.8rem; margin-top: 1.5rem; }
+  .foot { color: #888; font-size: 0.78rem; margin-top: 1.5rem; border-top: 1px solid #e5e5e5; padding-top: 0.75rem; }
   @media (prefers-color-scheme: dark) {
-    body { color: #e5e5e5; background: #1a1a1a; }
-    .card, table, .alerts { background: #242424; border-color: #3a3a3a; }
+    body { color: #e5e5e5; background: #161616; }
+    .tile, .card, .fin { background: #232323; border-color: #383838; }
+    .fin { background: #1e1e1e; }
     .risk { background: #2e2020; border-color: #6a3a3a; }
+    .buypanel { background: #2e1e1c; border-color: #e0483d; }
     .tag { background: #333; color: #ccc; }
-    .forecast { background: #1e2733; border-left-color: #488; }
-    th { background: #2e2e2e; }
     .up { color: #ff6b6b; } .down { color: #51cf66; }
     a { color: #6c9; }
   }
 </style>
 </head>
 <body>
-  <h1>股票追踪报告</h1>
-  <div class="meta">2026-07-10 · 收盘后自动生成</div>
+  <h1>股票追踪周报</h1>
+  <div class="meta">2026-07-10 · 周五收盘后自动生成</div>
 
   <h2>组合概览</h2>
-  <div class="cards">
-    <div class="card"><div class="label">上涨</div><div class="value up">1</div></div>
-    <div class="card"><div class="label">下跌</div><div class="value down">1</div></div>
-    <div class="card"><div class="label">平盘</div><div class="value muted">0</div></div>
-    <div class="card"><div class="label">平均涨跌幅</div><div class="value down">-0.04%</div></div>
+  <div class="tiles">
+    <div class="tile"><div class="label">持仓股票</div><div class="value">3</div></div>
+    <div class="tile"><div class="label">可击球</div><div class="value up">2</div></div>
+    <div class="tile"><div class="label">到卖点</div><div class="value down">0</div></div>
+    <div class="tile"><div class="label">组合总持仓市值(元)</div><div class="value">224,163</div></div>
   </div>
 
-  <h2>🚨 风险提示</h2>
-  <ul class="alerts risk">
-    <li><span class="tag">ST</span> <strong>腾讯控股</strong>（00700.HK）：<a href="https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0617/2026061700299.pdf">NOTICE OF LISTING ON THE STOCK EXCHANGE OF HONG KONG LIMITED - US$1,750,000,000 5.00% Senior Notes Due 2036 and US$700,000,000 5.60% Senior Notes Due 2046 and CNY11,000,000,000 2.50% Senior Notes Due 2036 and CNY4,000,000,000 3.10% Senior Notes Due 2056 issued under the Global Medium Term Note Programme of Tencent Holdings Limited with Maximum Limit of US$30 Billion</a></li>
+  <h2>🔴 可以击球</h2>
+  <ul class="buypanel">
+    <li><strong>贵州茅台</strong>（600519.SH）：当前市值 15063 亿 &lt; 理想买点 18000 亿</li>
+    <li><strong>分众传媒</strong>（002027.SZ）：当前市值 695 亿 &lt; 理想买点 1200 亿</li>
   </ul>
 
 
-  <h2>个股明细</h2>
-  <div class="table-wrap">
-  <table>
-    <thead>
-      <tr><th>代码</th><th>名称</th><th>现价</th><th>涨跌幅</th><th>量比</th><th>换手率</th><th>MA5</th><th>MA20</th><th>MA60</th><th>近5日</th><th>近20日</th><th>主力净流入(亿)</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="code">600519.SH</td>
-        <td class="name">贵州茅台</td>
-        <td>1204.98</td>
-        <td class="up">1.93%</td>
-        <td>1.61</td>
-        <td>0.42%</td>
-        <td>1196.44</td>
-        <td>1201.34</td>
-        <td>1279.83</td>
-        <td class="up">0.88%</td>
-        <td class="down">-3.68%</td>
-        <td class="up">7.53</td>
-      </tr>
-      <tr>
-        <td class="code">00700.HK</td>
-        <td class="name">腾讯控股</td>
-        <td>460.2</td>
-        <td class="down">-2%</td>
-        <td>0.92</td>
-        <td>0.44%</td>
-        <td>464.36</td>
-        <td>442.82</td>
-        <td>458.04</td>
-        <td class="up">6.73%</td>
-        <td class="down">-1.16%</td>
-        <td class="up">1.18</td>
-      </tr>
-    </tbody>
-  </table>
+  <h2>核心持仓</h2>
+  <div class="card hit">
+    <div class="head">
+      <span><span class="nm">贵州茅台</span> <span class="cd">600519.SH</span></span>
+      <span class="px">¥1204.98</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">15063 亿</span>
+      <span class="k">理想买点</span><span class="v">18000 亿</span>
+      <span class="k">1年内卖点</span><span class="v">28000 亿</span>
+      <span class="k">年内涨幅</span><span class="v down">-13.81%</span>
+      <span class="k">持股份数</span><span class="v">100</span>
+      <span class="k">成本价</span><span class="v">¥1450.0</span>
+      <span class="k">持仓市值</span><span class="v">¥120,498</span>
+      <span class="k">持股比例</span><span class="v">53.8%</span>
+    </div>
+    <div class="badges">
+<span class="badge buy">🔴 可以击球</span>    </div>
+    <div class="fin">📊 2026年 一季报：营收 547 亿（同比 6.3%），净利 272.4 亿（同比 1.5%）</div>
+  </div>
+  <div class="card ">
+    <div class="head">
+      <span><span class="nm">腾讯控股</span> <span class="cd">00700.HK</span></span>
+      <span class="px">HK$460.2</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">36195 亿</span>
+      <span class="k">理想买点</span><span class="v">30000 亿</span>
+      <span class="k">1年内卖点</span><span class="v">55000 亿</span>
+      <span class="k">年内涨幅</span><span class="v down">-25.5%</span>
+      <span class="k">持股份数</span><span class="v">200</span>
+      <span class="k">成本价</span><span class="v">HK$380.0</span>
+      <span class="k">持仓市值</span><span class="v">¥79,615</span>
+      <span class="k">持股比例</span><span class="v">35.5%</span>
+    </div>
+  </div>
+  <div class="card hit">
+    <div class="head">
+      <span><span class="nm">分众传媒</span> <span class="cd">002027.SZ</span></span>
+      <span class="px">¥4.81</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">695 亿</span>
+      <span class="k">理想买点</span><span class="v">1200 亿</span>
+      <span class="k">1年内卖点</span><span class="v">2600 亿</span>
+      <span class="k">年内涨幅</span><span class="v down">-31.77%</span>
+      <span class="k">持股份数</span><span class="v">5000</span>
+      <span class="k">成本价</span><span class="v">¥7.5</span>
+      <span class="k">持仓市值</span><span class="v">¥24,050</span>
+      <span class="k">持股比例</span><span class="v">10.7%</span>
+    </div>
+    <div class="badges">
+<span class="badge buy">🔴 可以击球</span>    </div>
+    <div class="fin">📊 2026年 一季报：营收 29.2 亿（同比 2%），净利 17.9 亿（同比 57.6%）</div>
+  </div>
+  <h2>观察池</h2>
+  <div class="card ">
+    <div class="head">
+      <span><span class="nm">香港交易所</span> <span class="cd">00388.HK</span></span>
+      <span class="px">HK$385</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">4222 亿</span>
+      <span class="k">理想买点</span><span class="v">3000 亿</span>
+      <span class="k">1年内卖点</span><span class="v"><span class="muted">—</span></span>
+      <span class="k">年内涨幅</span><span class="v down">-5.93%</span>
+    </div>
   </div>
 
-  <h2>财报速览</h2>
-  <div class="table-wrap">
-  <table>
-    <thead>
-      <tr><th>代码</th><th>名称</th><th>报告期</th><th>营收(亿)</th><th>营收同比</th><th>净利(亿)</th><th>净利同比</th><th>ROE</th><th>毛利率</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="code">600519.SH</td>
-        <td class="name">贵州茅台</td>
-        <td class="name">2026年 一季报</td>
-        <td>547.03</td>
-        <td class="up">6.34%</td>
-        <td>272.43</td>
-        <td class="up">1.47%</td>
-        <td>10.57%</td>
-        <td>89.76%</td>
-      </tr>
-    </tbody>
-  </table>
+
+  <div class="foot">
+    汇率 1 HKD = 0.865 CNY（实时）；港股市值/持仓/买卖点均按此折算为人民币，每股价格保留原币种。<br>
+    本报告由规则自动生成，仅供个人跟踪参考，不构成任何投资建议。
   </div>
-  <p class="forecast">📊 <strong>贵州茅台 业绩预告</strong>（略增 · 2025-01-03）：预计2024年1-12月营业收入约:17,380,000万元,同比上年增长:15.44%左右。</p>
-
-  <h2>近期公告</h2>
-  <h3 class="ann-stock">贵州茅台（600519.SH）</h3>
-  <ul class="ann-list">
-    <li><span class="ann-date">2026-06-22</span> <span class="tag">分配方案实施</span> <a href="https://data.eastmoney.com/notices/detail/600519/AN202606211823708334.html">贵州茅台:贵州茅台2025年年度权益分派实施公告</a></li>
-    <li><span class="ann-date">2026-06-12</span> <span class="tag">分配方案决议公告/股东大会决议公告/高管人员任职变动</span> <a href="https://data.eastmoney.com/notices/detail/600519/AN202606111823465366.html">贵州茅台:贵州茅台2025年度股东会决议公告</a></li>
-    <li><span class="ann-date">2026-06-03</span> <span class="tag">分配方案调整</span> <a href="https://data.eastmoney.com/notices/detail/600519/AN202606021823169141.html">贵州茅台:贵州茅台关于调整2025年年度利润分配方案每股分红金额的公告</a></li>
-    <li><span class="ann-date">2026-05-28</span> <span class="tag">股本变动/回购进展情况/回购实施公告</span> <a href="https://data.eastmoney.com/notices/detail/600519/AN202605271822918451.html">贵州茅台:贵州茅台关于回购股份实施结果暨股份变动的公告</a></li>
-    <li><span class="ann-date">2026-05-08</span> <span class="tag">回购进展情况</span> <a href="https://data.eastmoney.com/notices/detail/600519/AN202605071822034858.html">贵州茅台:贵州茅台关于回购股份实施进展的公告</a></li>
-    <li><span class="ann-date">2026-04-29</span> <span class="tag">其他</span> <a href="https://data.eastmoney.com/notices/detail/600519/AN202604281821673334.html">贵州茅台:贵州茅台关于召开2025年度及2026年第一季度业绩说明会的公告</a></li>
-  </ul>
-  <h3 class="ann-stock">腾讯控股（00700.HK）</h3>
-  <ul class="ann-list">
-    <li><span class="ann-date">2026-06-22</span> <span class="tag">Announcements and Notices - [Date of Board Meeting]</span> <a href="https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0622/2026062200918.pdf">DATE OF BOARD MEETING</a></li>
-    <li><span class="ann-date">2026-06-17</span> <span class="tag">Debt and Structured Products - [Offering Circular and Pricing Supplement - Debt Securities]</span> <a href="https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0617/2026061700427.pdf">Publication of Pricing Supplements for the Issuance of US$1,750,000,000 5.00% Senior Notes Due 2036 and US$700,000,000 5.60% Senior Notes Due 2046 and CNY11,000,000,000 2.50% Senior Notes Due 2036 and CNY4,000,000,000 3.10% Senior Notes Due 2056 under the Global Medium Term Note Programme of Tencent Holdings Limited with Maximum Limit of US$30 Billion</a></li>
-    <li><span class="ann-date">2026-06-17</span> <span class="tag">Debt and Structured Products - [Formal Notice - Debt Securities]</span> <a href="https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0617/2026061700299.pdf">NOTICE OF LISTING ON THE STOCK EXCHANGE OF HONG KONG LIMITED - US$1,750,000,000 5.00% Senior Notes Due 2036 and US$700,000,000 5.60% Senior Notes Due 2046 and CNY11,000,000,000 2.50% Senior Notes Due 2036 and CNY4,000,000,000 3.10% Senior Notes Due 2056 issued under the Global Medium Term Note Programme of Tencent Holdings Limited with Maximum Limit of US$30 Billion</a></li>
-    <li><span class="ann-date">2026-06-17</span> <span class="tag">Announcements and Notices - [Issue of Debt Securities]</span> <a href="https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0617/2026061700293.pdf">COMPLETION OF US$2.45 BILLION AND CNY15 BILLION ISSUE OF NOTES UNDER THE GLOBAL MEDIUM TERM NOTE PROGRAMME</a></li>
-  </ul>
-
-
-  <div class="foot">本报告由规则自动生成，仅供个人跟踪参考，不构成任何投资建议。</div>
 </body>
 </html>

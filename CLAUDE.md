@@ -87,7 +87,8 @@ AiInvestmentTraceAgent.sln
 
 ```bash
 dotnet test                              # 跑全部测试（提交前必过）
-dotnet test --filter FullyQualifiedName~Indicators   # 跑指定测试
+dotnet test --filter FullyQualifiedName~HoldingCalculator   # 跑指定测试
+dotnet test --filter "Category!=Integration"          # 跳过打真实接口的集成测试
 dotnet run --project src/Agent.Console   # 本地生成一次报告
 dotnet build                             # 构建
 ```
