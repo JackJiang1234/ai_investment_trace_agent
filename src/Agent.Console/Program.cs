@@ -29,7 +29,6 @@ static void ConfigureHttp(HttpClient client)
 
 builder.Services.AddHttpClient<IQuoteSource, EastMoneyQuoteSource>(ConfigureHttp);
 builder.Services.AddHttpClient<IKlineSource, EastMoneyKlineSource>(ConfigureHttp);
-builder.Services.AddHttpClient<IFundFlowSource, EastMoneyFundFlowSource>(ConfigureHttp);
 // 公告按市场路由：A股→东财，港股→披露易。两个具体源各自带 HttpClient，由 RoutingAnnouncementSource 分派。
 builder.Services.AddHttpClient<EastMoneyAnnouncementSource>(ConfigureHttp);
 builder.Services.AddHttpClient<HkexnewsAnnouncementSource>(ConfigureHttp);
@@ -75,8 +74,8 @@ if (report.Stocks.Count == 0)
     return 1;
 }
 
-logger.LogInformation("报告已写入 {Dir}/{Date}.*（{Count} 只，其中异动 {Alerted} 只）。",
-    options.Report.OutputDirectory, dateText, report.Stocks.Count, report.Alerted.Count);
+logger.LogInformation("报告已写入 {Dir}/{Date}.*（{Count} 只）。",
+    options.Report.OutputDirectory, dateText, report.Stocks.Count);
 return 0;
 
 // 供 ILogger<Program> 与测试引用（顶层语句的隐式入口类）。

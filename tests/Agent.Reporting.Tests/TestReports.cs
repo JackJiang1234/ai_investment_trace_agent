@@ -23,33 +23,15 @@ internal static class TestReports
         VolumeRatio = volumeRatio,
     };
 
-    public static StockAnalysis Analysis(Quote quote, decimal? ma5 = null,
-        params TriggeredAlert[] alerts) => new()
+    public static StockAnalysis Analysis(Quote quote) => new()
     {
         Quote = quote,
-        Ma5 = ma5,
-        Ma20 = null,
-        Ma60 = null,
-        Return5 = null,
-        Return20 = null,
-        IsNewHigh20 = false,
-        IsNewLow20 = false,
-        Alerts = alerts,
     };
 
     public static DailyReport Sample()
     {
-        var maotai = Analysis(Quote("600519.SH", "贵州茅台", 1199.30m, 0.88m), ma5: 1195.00m);
-        var tencent = Analysis(
-            Quote("00700.HK", "腾讯控股", 476.40m, 6.30m, volumeRatio: 2.5m),
-            ma5: 460.00m,
-            new TriggeredAlert
-            {
-                Kind = AlertKind.PriceChange,
-                Description = "涨幅 6.3% ≥ 5%",
-                Value = 6.30m,
-                Threshold = 5m,
-            });
+        var maotai = Analysis(Quote("600519.SH", "贵州茅台", 1199.30m, 0.88m));
+        var tencent = Analysis(Quote("00700.HK", "腾讯控股", 476.40m, 6.30m, volumeRatio: 2.5m));
 
         IReadOnlyList<StockAnalysis> stocks = [maotai, tencent];
         return new DailyReport

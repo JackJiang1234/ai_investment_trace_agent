@@ -19,21 +19,12 @@
 {{~ end ~}}
 {{~ end ~}}
 
-{{~ alerted = Alerted ~}}
-{{~ if alerted.size > 0 ~}}
-## ⚠ 异动提醒
-
-{{~ for s in alerted ~}}
-- **{{ s.Quote.Name }}**（{{ s.Quote.Code }}）：{{~ for a in s.Alerts ~}} {{ a.Description }}{{ if !for.last }}；{{ end }}{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
-
 ## 个股明细
 
-| 代码 | 名称 | 现价 | 涨跌幅 | 量比 | 换手率 | MA5 | MA20 | MA60 | 近5日 | 近20日 | 主力净流入(亿) |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 代码 | 名称 | 现价 |
+|---|---|---:|
 {{~ for s in Stocks ~}}
-| {{ s.Quote.Code }} | {{ s.Quote.Name }} | {{ s.Quote.Price }} | {{ s.Quote.ChangePercent }}% | {{ s.Quote.VolumeRatio }} | {{ s.Quote.TurnoverRate }}% | {{ if s.Ma5 }}{{ s.Ma5 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Ma20 }}{{ s.Ma20 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Ma60 }}{{ s.Ma60 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Return5 }}{{ s.Return5 | math.round 2 }}%{{ else }}—{{ end }} | {{ if s.Return20 }}{{ s.Return20 | math.round 2 }}%{{ else }}—{{ end }} | {{ if s.FundFlow }}{{ s.FundFlow.MainNetInflowInYi | math.round 2 }}{{ else }}—{{ end }} |
+| {{ s.Quote.Code }} | {{ s.Quote.Name }} | {{ s.Quote.Price }} |
 {{~ end ~}}
 
 {{~ has_fin = false ~}}

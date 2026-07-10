@@ -10,7 +10,6 @@ public sealed class ReportOrchestrator
 {
     private readonly IQuoteSource _quoteSource;
     private readonly IKlineSource _klineSource;
-    private readonly IFundFlowSource _fundFlowSource;
     private readonly IAnnouncementSource _announcementSource;
     private readonly IFinancialSource _financialSource;
     private readonly IReportRenderer _renderer;
@@ -22,7 +21,6 @@ public sealed class ReportOrchestrator
     public ReportOrchestrator(
         IQuoteSource quoteSource,
         IKlineSource klineSource,
-        IFundFlowSource fundFlowSource,
         IAnnouncementSource announcementSource,
         IFinancialSource financialSource,
         IReportRenderer renderer,
@@ -33,7 +31,6 @@ public sealed class ReportOrchestrator
     {
         _quoteSource = quoteSource;
         _klineSource = klineSource;
-        _fundFlowSource = fundFlowSource;
         _announcementSource = announcementSource;
         _financialSource = financialSource;
         _renderer = renderer;
@@ -79,8 +76,7 @@ public sealed class ReportOrchestrator
         await _delivery.DeliverAsync(
             new RenderedReport { Date = date, Contents = contents }, cancellationToken);
 
-        _logger.LogInformation("报告生成完成：{Count} 只股票，{Alerted} 只异动。",
-            analyses.Count, report.Alerted.Count);
+        _logger.LogInformation("报告生成完成：{Count} 只股票。", analyses.Count);
 
         return report;
     }
@@ -110,10 +106,9 @@ public sealed class ReportOrchestrator
             var bars = await _klineSource.GetDailyBarsAsync(code, _options.Report.KlineLookbackDays, ct);
             quote = ApplyClosePriceFallback(quote, bars);
 
-            var analysis = StockAnalyzer.Analyze(quote, bars, _options.Alerts);
-            return analysis with
+            return new StockAnalysis
             {
-                FundFlow = await TryGetFundFlowAsync(code, ct),
+                Quote = quote,
                 Announcements = await TryGetAnnouncementsAsync(code, ct),
                 Financials = await TryGetFinancialsAsync(code, ct),
             };
@@ -121,22 +116,6 @@ public sealed class ReportOrchestrator
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
             _logger.LogError(ex, "拉取失败，跳过：{Code}", code);
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// 拉取资金流；资金流为补充信息，失败不应影响该股入报告，降级为 null。
-    /// </summary>
-    private async Task<FundFlow?> TryGetFundFlowAsync(StockCode code, CancellationToken ct)
-    {
-        try
-        {
-            return await _fundFlowSource.GetLatestFundFlowAsync(code, ct);
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-        {
-            _logger.LogWarning(ex, "资金流获取失败，降级为空：{Code}", code);
             return null;
         }
     }

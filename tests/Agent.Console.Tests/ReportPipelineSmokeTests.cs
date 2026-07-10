@@ -45,17 +45,6 @@ public class ReportPipelineSmokeTests : IDisposable
                 new() { Date = new(2026, 7, 7), Open = 459m, Close = 461.2m, High = 479.8m, Low = 457m, Volume = 1, Amount = 1m, ChangePercent = 2.04m, TurnoverRate = 0.6m },
                 new() { Date = new(2026, 7, 8), Open = 461.2m, Close = 476.4m, High = 482.8m, Low = 460.6m, Volume = 1, Amount = 1m, ChangePercent = 6.30m, TurnoverRate = 0.54m },
             });
-        var fundFlows = Substitute.For<IFundFlowSource>();
-        fundFlows.GetLatestFundFlowAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
-            .Returns(new FundFlow
-            {
-                Date = new(2026, 7, 8),
-                MainNetInflow = 980_042_000m,
-                SuperLargeNetInflow = 997_388_832m,
-                LargeNetInflow = -17_346_832m,
-                MediumNetInflow = 1_708_122_368m,
-                SmallNetInflow = 514_965_024m,
-            });
         var announcements = Substitute.For<IAnnouncementSource>();
         announcements.GetRecentAnnouncementsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(new Announcement[]
@@ -82,7 +71,6 @@ public class ReportPipelineSmokeTests : IDisposable
         var options = new AgentOptions
         {
             Stocks = [new StockConfig { Code = "00700.HK" }],
-            Alerts = new AlertOptions { PctChangeThreshold = 5m, VolumeRatioThreshold = 2m },
             Report = new ReportOptions
             {
                 OutputDirectory = _dir,
@@ -91,7 +79,7 @@ public class ReportPipelineSmokeTests : IDisposable
         };
 
         var orchestrator = new ReportOrchestrator(
-            quotes, klines, fundFlows, announcements, financials,
+            quotes, klines, announcements, financials,
             new ScribanReportRenderer(),
             new FileReportDelivery(_dir),
             new NoOpSummarizer(),
@@ -103,13 +91,10 @@ public class ReportPipelineSmokeTests : IDisposable
         var html = await File.ReadAllTextAsync(Path.Combine(_dir, "2026-07-08.html"));
         var md = await File.ReadAllTextAsync(Path.Combine(_dir, "2026-07-08.md"));
 
-        html.Should().Contain("腾讯控股").And.Contain("6.3");
-        html.Should().Contain("量比"); // 异动提醒区
-        html.Should().Contain("9.8"); // 主力净流入 9.80 亿
+        html.Should().Contain("腾讯控股");
         html.Should().Contain("风险提示").And.Contain("减持"); // 风险提示区
         html.Should().Contain("近期公告");
         md.Should().Contain("腾讯控股").And.Contain("2026-07-08");
-        md.Should().Contain("主力净流入");
         md.Should().Contain("风险提示").And.Contain("减持");
         md.Should().Contain("财报").And.Contain("2026年 一季报");
     }

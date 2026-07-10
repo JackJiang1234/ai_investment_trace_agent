@@ -67,39 +67,18 @@
   </ul>
   {{~ end ~}}
 
-  {{~ alerted = Alerted ~}}
-  {{~ if alerted.size > 0 ~}}
-  <h2>⚠ 异动提醒</h2>
-  <ul class="alerts">
-    {{~ for s in alerted ~}}
-    <li><strong>{{ s.Quote.Name }}</strong>（{{ s.Quote.Code }}）：{{~ for a in s.Alerts ~}} {{ a.Description }}{{ if !for.last }}；{{ end }}{{~ end ~}}</li>
-    {{~ end ~}}
-  </ul>
-  {{~ end ~}}
-
   <h2>个股明细</h2>
   <div class="table-wrap">
   <table>
     <thead>
-      <tr><th>代码</th><th>名称</th><th>现价</th><th>涨跌幅</th><th>量比</th><th>换手率</th><th>MA5</th><th>MA20</th><th>MA60</th><th>近5日</th><th>近20日</th><th>主力净流入(亿)</th></tr>
+      <tr><th>代码</th><th>名称</th><th>现价</th></tr>
     </thead>
     <tbody>
       {{~ for s in Stocks ~}}
-      {{~ cls = "" ~}}
-      {{~ if s.Quote.ChangePercent > 0 ~}}{{~ cls = "up" ~}}{{~ else if s.Quote.ChangePercent < 0 ~}}{{~ cls = "down" ~}}{{~ end ~}}
       <tr>
         <td class="code">{{ s.Quote.Code }}</td>
         <td class="name">{{ s.Quote.Name }}</td>
         <td>{{ s.Quote.Price }}</td>
-        <td class="{{ cls }}">{{ s.Quote.ChangePercent }}%</td>
-        <td>{{ s.Quote.VolumeRatio }}</td>
-        <td>{{ s.Quote.TurnoverRate }}%</td>
-        <td>{{ if s.Ma5 }}{{ s.Ma5 | math.round 2 }}{{ else }}<span class="muted">—</span>{{ end }}</td>
-        <td>{{ if s.Ma20 }}{{ s.Ma20 | math.round 2 }}{{ else }}<span class="muted">—</span>{{ end }}</td>
-        <td>{{ if s.Ma60 }}{{ s.Ma60 | math.round 2 }}{{ else }}<span class="muted">—</span>{{ end }}</td>
-        <td class="{{ if s.Return5 > 0 }}up{{ else if s.Return5 < 0 }}down{{ end }}">{{ if s.Return5 }}{{ s.Return5 | math.round 2 }}%{{ else }}<span class="muted">—</span>{{ end }}</td>
-        <td class="{{ if s.Return20 > 0 }}up{{ else if s.Return20 < 0 }}down{{ end }}">{{ if s.Return20 }}{{ s.Return20 | math.round 2 }}%{{ else }}<span class="muted">—</span>{{ end }}</td>
-        <td class="{{ if s.FundFlow && s.FundFlow.MainNetInflow > 0 }}up{{ else if s.FundFlow && s.FundFlow.MainNetInflow < 0 }}down{{ end }}">{{ if s.FundFlow }}{{ s.FundFlow.MainNetInflowInYi | math.round 2 }}{{ else }}<span class="muted">—</span>{{ end }}</td>
       </tr>
       {{~ end ~}}
     </tbody>

@@ -64,9 +64,6 @@ public sealed class AgentOptions
     /// <summary>关注的股票列表。</summary>
     public List<StockConfig> Stocks { get; set; } = [];
 
-    /// <summary>异动阈值。</summary>
-    public AlertOptions Alerts { get; set; } = new();
-
     /// <summary>公告追踪配置。</summary>
     public AnnouncementOptions Announcements { get; set; } = new();
 

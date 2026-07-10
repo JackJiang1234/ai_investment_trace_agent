@@ -12,10 +12,6 @@ public sealed record DailyReport
     /// <summary>全部个股分析（按配置顺序）。</summary>
     public required IReadOnlyList<StockAnalysis> Stocks { get; init; }
 
-    /// <summary>命中异动的个股（置顶展示用）。</summary>
-    public IReadOnlyList<StockAnalysis> Alerted =>
-        Stocks.Where(s => s.HasAlert).ToArray();
-
     /// <summary>命中风险关键词的公告（风险提示区，跨个股汇总）。</summary>
     public IReadOnlyList<RiskHit> RiskHits { get; init; } = [];
 
