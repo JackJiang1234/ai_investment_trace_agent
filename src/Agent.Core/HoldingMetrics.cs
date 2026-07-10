@@ -24,6 +24,9 @@ public sealed record HoldingMetrics
     /// <summary>持仓市值（元人民币）= 现价 × 持股份数（折人民币）；无持股为 null。</summary>
     public decimal? HoldingValueCny { get; init; }
 
+    /// <summary>年初持仓市值（元人民币）= 年初首个交易日收盘 × 持股份数（折人民币）；无持股或无年初收盘为 null。</summary>
+    public decimal? YearStartValueCny { get; init; }
+
     /// <summary>理想买点（亿元人民币）。</summary>
     public decimal? IdealBuyYi { get; init; }
 

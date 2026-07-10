@@ -17,6 +17,7 @@ public class ScribanReportRendererTests
         md.Should().Contain("组合概览");
         md.Should().Contain("核心持仓").And.Contain("观察池"); // 分组
         md.Should().Contain("贵州茅台").And.Contain("腾讯控股");
+        md.Should().Contain("年度收益"); // 组合概览新增年度收益金额/收益率
     }
 
     [Fact]
