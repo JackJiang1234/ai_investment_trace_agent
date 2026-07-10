@@ -5,66 +5,50 @@ namespace Agent.Core.Tests;
 
 public class PortfolioSummaryTests
 {
-    private static StockAnalysis Analysis(string code, string name, decimal changePercent) => new()
+    private static Quote Quote(string code) => new()
     {
-        Quote = new Quote
+        Code = StockCode.Parse(code),
+        Name = code,
+        Price = 100m,
+        PreviousClose = 100m,
+        Open = 100m,
+        High = 100m,
+        Low = 100m,
+        ChangeAmount = 0m,
+        ChangePercent = 0m,
+        Volume = 0,
+        Turnover = 0m,
+        TurnoverRate = 0m,
+        VolumeRatio = 0m,
+    };
+
+    private static StockAnalysis Stock(
+        string code, decimal? holdingValueCny, bool canBuy = false, bool shouldSell = false) => new()
+    {
+        Quote = Quote(code),
+        Holding = new HoldingMetrics
         {
-            Code = StockCode.Parse(code),
-            Name = name,
-            Price = 100m,
-            PreviousClose = 100m,
-            Open = 100m,
-            High = 100m,
-            Low = 100m,
-            ChangeAmount = 0m,
-            ChangePercent = changePercent,
-            Volume = 0,
-            Turnover = 0m,
-            TurnoverRate = 0m,
-            VolumeRatio = 0m,
+            Currency = Currency.CNY,
+            HoldingValueCny = holdingValueCny,
+            CanBuy = canBuy,
+            ShouldSell = shouldSell,
         },
     };
 
     [Fact]
-    public void From_CountsAdvancersDeclinersUnchanged()
+    public void From_CountsHoldingsBuyAndSellSignals()
     {
         var summary = PortfolioSummary.From(
         [
-            Analysis("600519.SH", "涨", 3m),
-            Analysis("000001.SZ", "跌", -2m),
-            Analysis("00700.HK", "平", 0m),
-            Analysis("600036.SH", "涨2", 1m),
+            Stock("600519.SH", 120000m, canBuy: true),
+            Stock("00700.HK", 54000m, shouldSell: true),
+            Stock("00388.HK", null, canBuy: true), // 观察池：击球但无持仓
         ]);
 
-        summary.Advancers.Should().Be(2);
-        summary.Decliners.Should().Be(1);
-        summary.Unchanged.Should().Be(1);
-    }
-
-    [Fact]
-    public void From_ComputesAverageChangePercent()
-    {
-        var summary = PortfolioSummary.From(
-        [
-            Analysis("600519.SH", "a", 4m),
-            Analysis("000001.SZ", "b", -2m),
-        ]);
-
-        summary.AverageChangePercent.Should().Be(1m); // (4 + -2) / 2
-    }
-
-    [Fact]
-    public void From_IdentifiesTopGainerAndLoser()
-    {
-        var summary = PortfolioSummary.From(
-        [
-            Analysis("600519.SH", "中", 1m),
-            Analysis("000001.SZ", "最强", 8m),
-            Analysis("00700.HK", "最弱", -6m),
-        ]);
-
-        summary.TopGainer!.Quote.Name.Should().Be("最强");
-        summary.TopLoser!.Quote.Name.Should().Be("最弱");
+        summary.HoldingCount.Should().Be(2);         // 仅两只有持仓
+        summary.BuySignalCount.Should().Be(2);       // 两只击球
+        summary.SellSignalCount.Should().Be(1);
+        summary.TotalHoldingValueCny.Should().Be(174000m);
     }
 
     [Fact]
@@ -72,11 +56,9 @@ public class PortfolioSummaryTests
     {
         var summary = PortfolioSummary.From([]);
 
-        summary.Advancers.Should().Be(0);
-        summary.Decliners.Should().Be(0);
-        summary.Unchanged.Should().Be(0);
-        summary.AverageChangePercent.Should().Be(0m);
-        summary.TopGainer.Should().BeNull();
-        summary.TopLoser.Should().BeNull();
+        summary.HoldingCount.Should().Be(0);
+        summary.BuySignalCount.Should().Be(0);
+        summary.SellSignalCount.Should().Be(0);
+        summary.TotalHoldingValueCny.Should().Be(0m);
     }
 }

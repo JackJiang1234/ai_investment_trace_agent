@@ -52,10 +52,10 @@
 
   <h2>组合概览</h2>
   <div class="cards">
-    <div class="card"><div class="label">上涨</div><div class="value up">{{ Summary.Advancers }}</div></div>
-    <div class="card"><div class="label">下跌</div><div class="value down">{{ Summary.Decliners }}</div></div>
-    <div class="card"><div class="label">平盘</div><div class="value muted">{{ Summary.Unchanged }}</div></div>
-    <div class="card"><div class="label">平均涨跌幅</div><div class="value {{ if Summary.AverageChangePercent > 0 }}up{{ else if Summary.AverageChangePercent < 0 }}down{{ end }}">{{ Summary.AverageChangePercent | math.round 2 }}%</div></div>
+    <div class="card"><div class="label">持仓</div><div class="value">{{ Summary.HoldingCount }}</div></div>
+    <div class="card"><div class="label">可击球</div><div class="value up">{{ Summary.BuySignalCount }}</div></div>
+    <div class="card"><div class="label">到卖点</div><div class="value down">{{ Summary.SellSignalCount }}</div></div>
+    <div class="card"><div class="label">组合总持仓市值(元)</div><div class="value">{{ Summary.TotalHoldingValueCny | math.round 0 }}</div></div>
   </div>
 
   {{~ if RiskHits.size > 0 ~}}

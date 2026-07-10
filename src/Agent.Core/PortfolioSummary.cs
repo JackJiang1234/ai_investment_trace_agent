@@ -1,67 +1,54 @@
 namespace Agent.Core;
 
-/// <summary>组合当日概览：涨跌家数、平均涨跌幅、领涨/领跌个股。</summary>
+/// <summary>
+/// 组合概览（v1.1，估值/持仓口径）：持仓股票数、命中买点/卖点家数、组合总持仓市值（元人民币）。
+/// </summary>
 public sealed record PortfolioSummary
 {
-    /// <summary>上涨家数（涨跌幅 &gt; 0）。</summary>
-    public required int Advancers { get; init; }
+    /// <summary>有持仓的股票数（持股份数非空）。</summary>
+    public required int HoldingCount { get; init; }
 
-    /// <summary>下跌家数（涨跌幅 &lt; 0）。</summary>
-    public required int Decliners { get; init; }
+    /// <summary>命中理想买点（可以击球）的股票数（跨分组）。</summary>
+    public required int BuySignalCount { get; init; }
 
-    /// <summary>平盘家数（涨跌幅 == 0）。</summary>
-    public required int Unchanged { get; init; }
+    /// <summary>命中卖点的股票数（跨分组）。</summary>
+    public required int SellSignalCount { get; init; }
 
-    /// <summary>平均涨跌幅（%）。</summary>
-    public required decimal AverageChangePercent { get; init; }
+    /// <summary>组合总持仓市值（元人民币）= 各有持仓股票的持仓市值之和。</summary>
+    public required decimal TotalHoldingValueCny { get; init; }
 
-    /// <summary>领涨个股；空组合为 null。</summary>
-    public StockAnalysis? TopGainer { get; init; }
-
-    /// <summary>领跌个股；空组合为 null。</summary>
-    public StockAnalysis? TopLoser { get; init; }
-
-    /// <summary>由个股分析列表汇总组合概览。</summary>
+    /// <summary>由个股分析汇总组合概览。</summary>
     public static PortfolioSummary From(IReadOnlyList<StockAnalysis> stocks)
     {
-        if (stocks.Count == 0)
-        {
-            return new PortfolioSummary
-            {
-                Advancers = 0,
-                Decliners = 0,
-                Unchanged = 0,
-                AverageChangePercent = 0m,
-            };
-        }
-
-        var advancers = 0;
-        var decliners = 0;
-        var unchanged = 0;
-        decimal sum = 0;
-        var top = stocks[0];
-        var bottom = stocks[0];
+        var holdingCount = 0;
+        var buy = 0;
+        var sell = 0;
+        decimal total = 0m;
 
         foreach (var s in stocks)
         {
-            var pct = s.Quote.ChangePercent;
-            sum += pct;
-            if (pct > 0) advancers++;
-            else if (pct < 0) decliners++;
-            else unchanged++;
+            var h = s.Holding;
+            if (h is null)
+            {
+                continue;
+            }
 
-            if (pct > top.Quote.ChangePercent) top = s;
-            if (pct < bottom.Quote.ChangePercent) bottom = s;
+            if (h.HoldingValueCny is { } value)
+            {
+                holdingCount++;
+                total += value;
+            }
+
+            if (h.CanBuy) buy++;
+            if (h.ShouldSell) sell++;
         }
 
         return new PortfolioSummary
         {
-            Advancers = advancers,
-            Decliners = decliners,
-            Unchanged = unchanged,
-            AverageChangePercent = sum / stocks.Count,
-            TopGainer = top,
-            TopLoser = bottom,
+            HoldingCount = holdingCount,
+            BuySignalCount = buy,
+            SellSignalCount = sell,
+            TotalHoldingValueCny = total,
         };
     }
 }

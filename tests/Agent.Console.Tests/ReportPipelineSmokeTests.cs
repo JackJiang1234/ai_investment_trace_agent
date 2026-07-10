@@ -45,6 +45,8 @@ public class ReportPipelineSmokeTests : IDisposable
                 new() { Date = new(2026, 7, 7), Open = 459m, Close = 461.2m, High = 479.8m, Low = 457m, Volume = 1, Amount = 1m, ChangePercent = 2.04m, TurnoverRate = 0.6m },
                 new() { Date = new(2026, 7, 8), Open = 461.2m, Close = 476.4m, High = 482.8m, Low = 460.6m, Volume = 1, Amount = 1m, ChangePercent = 6.30m, TurnoverRate = 0.54m },
             });
+        var fx = Substitute.For<IExchangeRateSource>();
+        fx.GetHkdToCnyAsync(Arg.Any<CancellationToken>()).Returns((decimal?)0.9m);
         var announcements = Substitute.For<IAnnouncementSource>();
         announcements.GetRecentAnnouncementsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(new Announcement[]
@@ -79,7 +81,7 @@ public class ReportPipelineSmokeTests : IDisposable
         };
 
         var orchestrator = new ReportOrchestrator(
-            quotes, klines, announcements, financials,
+            quotes, klines, fx, announcements, financials,
             new ScribanReportRenderer(),
             new FileReportDelivery(_dir),
             new NoOpSummarizer(),

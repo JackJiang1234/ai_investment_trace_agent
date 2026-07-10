@@ -16,8 +16,7 @@ public class ScribanReportRendererTests
         md.Should().Contain("2026-07-08");
         md.Should().Contain("贵州茅台");
         md.Should().Contain("腾讯控股");
-        md.Should().Contain("0.88");   // 茅台涨跌幅
-        md.Should().Contain("6.3");    // 腾讯涨跌幅
+        md.Should().Contain("组合概览");
     }
 
     [Fact]

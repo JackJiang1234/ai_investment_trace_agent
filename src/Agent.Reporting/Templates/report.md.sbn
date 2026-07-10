@@ -2,14 +2,8 @@
 
 ## 组合概览
 
-- 上涨 **{{ Summary.Advancers }}** / 下跌 **{{ Summary.Decliners }}** / 平盘 **{{ Summary.Unchanged }}**
-- 平均涨跌幅：**{{ Summary.AverageChangePercent | math.round 2 }}%**
-{{- if Summary.TopGainer }}
-- 领涨：{{ Summary.TopGainer.Quote.Name }}（{{ Summary.TopGainer.Quote.ChangePercent | math.round 2 }}%）
-{{- end }}
-{{- if Summary.TopLoser }}
-- 领跌：{{ Summary.TopLoser.Quote.Name }}（{{ Summary.TopLoser.Quote.ChangePercent | math.round 2 }}%）
-{{- end }}
+- 持仓 **{{ Summary.HoldingCount }}** 只 · 可击球 **{{ Summary.BuySignalCount }}** · 到卖点 **{{ Summary.SellSignalCount }}**
+- 组合总持仓市值：**{{ Summary.TotalHoldingValueCny | math.round 0 }}** 元人民币
 
 {{~ if RiskHits.size > 0 ~}}
 ## 🚨 风险提示
