@@ -15,6 +15,7 @@ public sealed class FileReportDelivery : IReportDelivery
         {
             [ReportFormat.Markdown] = "md",
             [ReportFormat.Html] = "html",
+            [ReportFormat.WeChatHtml] = "wechat.html",
         };
 
     private readonly string _outputDirectory;

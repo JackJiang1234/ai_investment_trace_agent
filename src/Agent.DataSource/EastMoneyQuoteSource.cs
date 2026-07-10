@@ -10,7 +10,7 @@ public sealed class EastMoneyQuoteSource : IQuoteSource
 {
     // push2 行情接口。fields 见 EastMoneyQuoteParser 的字段说明。
     private const string BaseUrl = "https://push2.eastmoney.com/api/qt/stock/get";
-    private const string Fields = "f43,f44,f45,f46,f47,f48,f50,f57,f58,f59,f60,f168,f169,f170";
+    private const string Fields = "f43,f44,f45,f46,f47,f48,f50,f57,f58,f59,f60,f116,f168,f169,f170";
     private const int MaxAttempts = 2; // 首次 + 1 次重试
 
     private readonly HttpClient _httpClient;

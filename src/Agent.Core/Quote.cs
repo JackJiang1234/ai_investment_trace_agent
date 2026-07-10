@@ -44,4 +44,10 @@ public sealed record Quote
 
     /// <summary>量比。</summary>
     public required decimal VolumeRatio { get; init; }
+
+    /// <summary>
+    /// 公司总市值（原始货币金额，A股为元、港股为港元；东财 push2 <c>f116</c>，不缩放）。
+    /// 无数据时为 0。换算亿元 ÷1e8；港股需再折算人民币。
+    /// </summary>
+    public decimal TotalMarketCap { get; init; }
 }

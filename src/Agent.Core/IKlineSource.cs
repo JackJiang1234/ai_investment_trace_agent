@@ -10,4 +10,11 @@ public interface IKlineSource
     /// <exception cref="HttpRequestException">网络请求在重试后仍失败。</exception>
     Task<IReadOnlyList<DailyBar>> GetDailyBarsAsync(
         StockCode code, int count, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取指定年份首个交易日的收盘价，供年内涨幅（YTD）基准使用；无数据时返回 <see langword="null"/>。
+    /// </summary>
+    /// <exception cref="HttpRequestException">网络请求在重试后仍失败。</exception>
+    Task<decimal?> GetYearStartCloseAsync(
+        StockCode code, int year, CancellationToken cancellationToken = default);
 }

@@ -31,6 +31,7 @@ public class EastMoneyQuoteParserTests
         quote.Turnover.Should().Be(3264967794.0m); // f48 原始
         quote.TurnoverRate.Should().Be(0.22m);     // f168 22 / 100
         quote.VolumeRatio.Should().Be(0.66m);      // f50 66 / 100
+        quote.TotalMarketCap.Should().Be(1493368000000.00m); // f116 原始（元，不缩放）
     }
 
     [Fact]
@@ -48,6 +49,7 @@ public class EastMoneyQuoteParserTests
         quote.ChangeAmount.Should().Be(10.000m);    // f169 10000 / 10^3
         quote.ChangePercent.Should().Be(2.21m);     // f170 221 / 100
         quote.VolumeRatio.Should().Be(1.50m);       // f50 150 / 100
+        quote.TotalMarketCap.Should().Be(4184375996197.80m); // f116 原始（港元，不缩放）
     }
 
     [Fact]

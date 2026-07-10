@@ -3,14 +3,15 @@ using Microsoft.Extensions.Logging;
 namespace Agent.Core;
 
 /// <summary>
-/// 报告编排：逐只股票拉取行情与历史K线 → 计算分析 → 汇总 → 渲染 → 投递。
+/// 报告编排：解析汇率 → 逐只股票拉取行情/K线/公告/财报并计算持仓与买卖点 →
+/// 汇总（分组、组合概览、持股比例）→ 渲染 → 投递。
 /// 单只股票失败不影响整体（记录并跳过），符合数据源易变的容错要求。
 /// </summary>
 public sealed class ReportOrchestrator
 {
     private readonly IQuoteSource _quoteSource;
     private readonly IKlineSource _klineSource;
-    private readonly IFundFlowSource _fundFlowSource;
+    private readonly IExchangeRateSource _exchangeRateSource;
     private readonly IAnnouncementSource _announcementSource;
     private readonly IFinancialSource _financialSource;
     private readonly IReportRenderer _renderer;
@@ -22,7 +23,7 @@ public sealed class ReportOrchestrator
     public ReportOrchestrator(
         IQuoteSource quoteSource,
         IKlineSource klineSource,
-        IFundFlowSource fundFlowSource,
+        IExchangeRateSource exchangeRateSource,
         IAnnouncementSource announcementSource,
         IFinancialSource financialSource,
         IReportRenderer renderer,
@@ -33,7 +34,7 @@ public sealed class ReportOrchestrator
     {
         _quoteSource = quoteSource;
         _klineSource = klineSource;
-        _fundFlowSource = fundFlowSource;
+        _exchangeRateSource = exchangeRateSource;
         _announcementSource = announcementSource;
         _financialSource = financialSource;
         _renderer = renderer;
@@ -45,16 +46,19 @@ public sealed class ReportOrchestrator
 
     public async Task<DailyReport> RunAsync(DateOnly date, CancellationToken cancellationToken = default)
     {
-        var analyses = new List<StockAnalysis>(_options.Stocks.Count);
+        var converter = await ResolveConverterAsync(cancellationToken);
 
+        var analyses = new List<StockAnalysis>(_options.Stocks.Count);
         foreach (var stock in _options.Stocks)
         {
-            var analysis = await AnalyzeStockAsync(stock, cancellationToken);
+            var analysis = await AnalyzeStockAsync(stock, converter, date, cancellationToken);
             if (analysis is not null)
             {
                 analyses.Add(analysis);
             }
         }
+
+        analyses = ApplyHoldingRatios(analyses);
 
         var report = new DailyReport
         {
@@ -62,6 +66,8 @@ public sealed class ReportOrchestrator
             Summary = PortfolioSummary.From(analyses),
             Stocks = analyses,
             RiskHits = CollectRiskHits(analyses),
+            HkdToCny = converter.HkdToCny,
+            IsLiveRate = converter.IsLiveRate,
         };
 
         var summary = await _summarizer.SummarizeAsync(report, cancellationToken);
@@ -79,13 +85,35 @@ public sealed class ReportOrchestrator
         await _delivery.DeliverAsync(
             new RenderedReport { Date = date, Contents = contents }, cancellationToken);
 
-        _logger.LogInformation("报告生成完成：{Count} 只股票，{Alerted} 只异动。",
-            analyses.Count, report.Alerted.Count);
+        _logger.LogInformation("报告生成完成：{Count} 只股票，击球 {Buy} 只。",
+            analyses.Count, report.Buyable.Count);
 
         return report;
     }
 
-    private async Task<StockAnalysis?> AnalyzeStockAsync(StockConfig stock, CancellationToken ct)
+    /// <summary>解析 HKD→CNY 汇率：优先实时源，失败回退配置静态汇率。</summary>
+    private async Task<CurrencyConverter> ResolveConverterAsync(CancellationToken ct)
+    {
+        try
+        {
+            if (await _exchangeRateSource.GetHkdToCnyAsync(ct) is { } live && live > 0)
+            {
+                return new CurrencyConverter(live, isLiveRate: true);
+            }
+
+            _logger.LogWarning("汇率源无数据，回退静态汇率。");
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "汇率获取失败，回退静态汇率。");
+        }
+
+        var fallback = _options.Currency.StaticRates.TryGetValue("HKD", out var s) && s > 0 ? s : 0.87m;
+        return new CurrencyConverter(fallback, isLiveRate: false);
+    }
+
+    private async Task<StockAnalysis?> AnalyzeStockAsync(
+        StockConfig stock, CurrencyConverter converter, DateOnly date, CancellationToken ct)
     {
         StockCode code;
         try
@@ -110,11 +138,13 @@ public sealed class ReportOrchestrator
             var bars = await _klineSource.GetDailyBarsAsync(code, _options.Report.KlineLookbackDays, ct);
             quote = ApplyClosePriceFallback(quote, bars);
 
-            var analysis = StockAnalyzer.Analyze(quote, bars, _options.Alerts);
-            return analysis with
+            var yearStartClose = await TryGetYearStartCloseAsync(code, date.Year, ct);
+
+            return new StockAnalysis
             {
-                FundFlow = await TryGetFundFlowAsync(code, ct),
-                Announcements = await TryGetAnnouncementsAsync(code, ct),
+                Quote = quote,
+                Holding = HoldingCalculator.Compute(quote, stock, converter, yearStartClose),
+                Announcements = await TryGetAnnouncementsAsync(code, date, ct),
                 Financials = await TryGetFinancialsAsync(code, ct),
             };
         }
@@ -125,27 +155,25 @@ public sealed class ReportOrchestrator
         }
     }
 
-    /// <summary>
-    /// 拉取资金流；资金流为补充信息，失败不应影响该股入报告，降级为 null。
-    /// </summary>
-    private async Task<FundFlow?> TryGetFundFlowAsync(StockCode code, CancellationToken ct)
+    /// <summary>取当年首个交易日收盘价供 YTD；失败降级为 null（该股不显示年内涨幅）。</summary>
+    private async Task<decimal?> TryGetYearStartCloseAsync(StockCode code, int year, CancellationToken ct)
     {
         try
         {
-            return await _fundFlowSource.GetLatestFundFlowAsync(code, ct);
+            return await _klineSource.GetYearStartCloseAsync(code, year, ct);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            _logger.LogWarning(ex, "资金流获取失败，降级为空：{Code}", code);
+            _logger.LogWarning(ex, "年初收盘获取失败，年内涨幅降级为空：{Code}", code);
             return null;
         }
     }
 
     /// <summary>
-    /// 拉取并按重要类型过滤公告；公告为补充信息，失败降级为空列表。
+    /// 拉取公告：按市场重要类型过滤，再按内容时间窗（近 LookbackDays 天）过滤。失败降级为空。
     /// </summary>
     private async Task<IReadOnlyList<Announcement>> TryGetAnnouncementsAsync(
-        StockCode code, CancellationToken ct)
+        StockCode code, DateOnly date, CancellationToken ct)
     {
         try
         {
@@ -153,9 +181,13 @@ public sealed class ReportOrchestrator
                 code, _options.Announcements.Lookback, ct);
 
             // 过滤按市场区分：A股用中文重要类型包含匹配；港股（英文标题）改为排除例行件。
-            return code.Market == Market.HK
+            var important = code.Market == Market.HK
                 ? AnnouncementFilter.ExcludeRoutine(raw, _options.Announcements.HkExcludeTypes)
                 : AnnouncementFilter.FilterImportant(raw, _options.Announcements);
+
+            // 周跟踪内容时间窗：仅保留近 N 天（本周）的公告。
+            var cutoff = date.AddDays(-(_options.Announcements.LookbackDays - 1));
+            return important.Where(a => a.Date >= cutoff).ToArray();
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
@@ -176,6 +208,25 @@ public sealed class ReportOrchestrator
             _logger.LogWarning(ex, "财报获取失败，降级为空：{Code}", code);
             return null;
         }
+    }
+
+    /// <summary>
+    /// 计算组合内权重（持股比例）：各股持仓市值 ÷ 全部持仓总市值（均人民币）。
+    /// 分母仅含有持仓的股票；无持仓总市值时不计比例。
+    /// </summary>
+    private static List<StockAnalysis> ApplyHoldingRatios(List<StockAnalysis> analyses)
+    {
+        var total = analyses.Sum(a => a.Holding?.HoldingValueCny ?? 0m);
+        if (total <= 0m)
+        {
+            return analyses;
+        }
+
+        return analyses
+            .Select(a => a.Holding?.HoldingValueCny is { } value
+                ? a with { Holding = a.Holding with { HoldingRatioPercent = value / total * 100m } }
+                : a)
+            .ToList();
     }
 
     /// <summary>扫描各股公告标题，汇总命中风险关键词的条目（跨个股）。</summary>

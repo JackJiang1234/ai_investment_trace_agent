@@ -29,7 +29,7 @@ static void ConfigureHttp(HttpClient client)
 
 builder.Services.AddHttpClient<IQuoteSource, EastMoneyQuoteSource>(ConfigureHttp);
 builder.Services.AddHttpClient<IKlineSource, EastMoneyKlineSource>(ConfigureHttp);
-builder.Services.AddHttpClient<IFundFlowSource, EastMoneyFundFlowSource>(ConfigureHttp);
+builder.Services.AddHttpClient<IExchangeRateSource, EastMoneyExchangeRateSource>(ConfigureHttp);
 // 公告按市场路由：A股→东财，港股→披露易。两个具体源各自带 HttpClient，由 RoutingAnnouncementSource 分派。
 builder.Services.AddHttpClient<EastMoneyAnnouncementSource>(ConfigureHttp);
 builder.Services.AddHttpClient<HkexnewsAnnouncementSource>(ConfigureHttp);
@@ -45,27 +45,12 @@ using var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILogger<Program>>();
 var orchestrator = host.Services.GetRequiredService<ReportOrchestrator>();
 
-// 报告日期取北京时间（UTC+8）当日；收盘后运行即当日收盘数据。
+// 报告日期取北京时间（UTC+8）当日；周五收盘后运行即当周收盘数据。
+// 周跟踪由 GitHub Actions cron 固定周五触发，不做交易日判断（周五休市则取最近交易日收盘快照）。
 var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(8));
 var dateText = today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
 
-// 非交易日跳过（周末/配置的节假日），避免产出无意义报告。
-if (options.Schedule.SkipNonTradingDays)
-{
-    var holidays = options.Schedule.Holidays
-        .Select(h => DateOnly.TryParse(h, System.Globalization.CultureInfo.InvariantCulture, out var d)
-            ? (DateOnly?)d : null)
-        .OfType<DateOnly>()
-        .ToArray();
-
-    if (!TradingCalendar.IsTradingDay(today, holidays))
-    {
-        logger.LogInformation("{Date} 非交易日，跳过生成。", dateText);
-        return 0;
-    }
-}
-
-logger.LogInformation("开始生成 {Date} 追踪报告，共 {Count} 只股票……", dateText, options.Stocks.Count);
+logger.LogInformation("开始生成 {Date} 追踪周报，共 {Count} 只股票……", dateText, options.Stocks.Count);
 
 var report = await orchestrator.RunAsync(today);
 
@@ -75,8 +60,8 @@ if (report.Stocks.Count == 0)
     return 1;
 }
 
-logger.LogInformation("报告已写入 {Dir}/{Date}.*（{Count} 只，其中异动 {Alerted} 只）。",
-    options.Report.OutputDirectory, dateText, report.Stocks.Count, report.Alerted.Count);
+logger.LogInformation("报告已写入 {Dir}/{Date}.*（{Count} 只）。",
+    options.Report.OutputDirectory, dateText, report.Stocks.Count);
 return 0;
 
 // 供 ILogger<Program> 与测试引用（顶层语句的隐式入口类）。

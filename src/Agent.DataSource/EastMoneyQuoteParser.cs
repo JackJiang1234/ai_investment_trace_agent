@@ -58,6 +58,8 @@ public static class EastMoneyQuoteParser
                 Turnover = GetDecimal(data, "f48"),
                 TurnoverRate = GetDecimal(data, "f168") / PercentScale,
                 VolumeRatio = GetDecimal(data, "f50") / PercentScale,
+                // f116 总市值为实际货币金额，不缩放（与价格字段不同）。
+                TotalMarketCap = GetDecimal(data, "f116"),
             };
         }
         catch (JsonException)

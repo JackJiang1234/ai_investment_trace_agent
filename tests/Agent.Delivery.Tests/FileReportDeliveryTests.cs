@@ -35,6 +35,20 @@ public class FileReportDeliveryTests : IDisposable
     }
 
     [Fact]
+    public async Task DeliverAsync_WeChatHtml_UsesWechatHtmlExtension()
+    {
+        var delivery = new FileReportDelivery(_dir);
+        var report = Report() with
+        {
+            Contents = new Dictionary<ReportFormat, string> { [ReportFormat.WeChatHtml] = "<section>hi</section>" },
+        };
+
+        await delivery.DeliverAsync(report);
+
+        File.Exists(Path.Combine(_dir, "2026-07-08.wechat.html")).Should().BeTrue();
+    }
+
+    [Fact]
     public async Task DeliverAsync_CreatesOutputDirectoryIfMissing()
     {
         Directory.Exists(_dir).Should().BeFalse();

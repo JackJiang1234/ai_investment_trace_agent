@@ -18,6 +18,7 @@ public sealed class ScribanReportRenderer : IReportRenderer
         {
             [ReportFormat.Markdown] = "report.md.sbn",
             [ReportFormat.Html] = "report.html.sbn",
+            [ReportFormat.WeChatHtml] = "report.wechat.html.sbn",
         };
 
     private readonly ConcurrentDictionary<ReportFormat, Template> _cache = new();
