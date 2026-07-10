@@ -4,6 +4,7 @@
 
 - 持仓 **{{ Summary.HoldingCount }}** 只 · 可击球 **{{ Summary.BuySignalCount }}** · 到卖点 **{{ Summary.SellSignalCount }}**
 - 组合总持仓市值：**{{ Summary.TotalHoldingValueCny | math.round 0 }}** 元人民币
+- 年度收益（年内）：**{{ Summary.YtdProfitCny | math.round 0 }}** 元人民币{{ if Summary.YtdReturnPercent }}（**{{ Summary.YtdReturnPercent | math.round 2 }}%**）{{ end }}
 
 {{~ if Buyable.size > 0 ~}}
 ## 🔴 可以击球

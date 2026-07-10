@@ -23,13 +23,15 @@ public class PortfolioSummaryTests
     };
 
     private static StockAnalysis Stock(
-        string code, decimal? holdingValueCny, bool canBuy = false, bool shouldSell = false) => new()
+        string code, decimal? holdingValueCny, bool canBuy = false, bool shouldSell = false,
+        decimal? yearStartValueCny = null) => new()
     {
         Quote = Quote(code),
         Holding = new HoldingMetrics
         {
             Currency = Currency.CNY,
             HoldingValueCny = holdingValueCny,
+            YearStartValueCny = yearStartValueCny,
             CanBuy = canBuy,
             ShouldSell = shouldSell,
         },
@@ -52,6 +54,31 @@ public class PortfolioSummaryTests
     }
 
     [Fact]
+    public void From_ComputesYtdProfitAndReturn()
+    {
+        // A: 现值 120000 / 年初 100000 → +20000；B: 现值 54000 / 年初 60000 → -6000
+        // 合计收益 14000，年初总市值 160000 → 8.75%
+        var summary = PortfolioSummary.From(
+        [
+            Stock("600519.SH", holdingValueCny: 120000m, yearStartValueCny: 100000m),
+            Stock("00700.HK", holdingValueCny: 54000m, yearStartValueCny: 60000m),
+            Stock("00388.HK", holdingValueCny: null),   // 观察池：不计入
+        ]);
+
+        summary.YtdProfitCny.Should().Be(14000m);
+        summary.YtdReturnPercent.Should().Be(8.75m);
+    }
+
+    [Fact]
+    public void From_NoYearStartData_YtdReturnIsNull()
+    {
+        var summary = PortfolioSummary.From([Stock("600519.SH", holdingValueCny: 120000m)]);
+
+        summary.YtdProfitCny.Should().Be(0m);
+        summary.YtdReturnPercent.Should().BeNull();
+    }
+
+    [Fact]
     public void From_Empty_ReturnsZeroedSummary()
     {
         var summary = PortfolioSummary.From([]);
@@ -60,5 +87,7 @@ public class PortfolioSummaryTests
         summary.BuySignalCount.Should().Be(0);
         summary.SellSignalCount.Should().Be(0);
         summary.TotalHoldingValueCny.Should().Be(0m);
+        summary.YtdProfitCny.Should().Be(0m);
+        summary.YtdReturnPercent.Should().BeNull();
     }
 }

@@ -45,6 +45,7 @@ public class HoldingCalculatorTests
         m.Currency.Should().Be(Currency.CNY);
         m.TotalMarketCapCnyYi.Should().Be(15000m);       // 1.5e12 / 1e8
         m.HoldingValueCny.Should().Be(120000m);           // 1200 * 100
+        m.YearStartValueCny.Should().Be(160000m);         // 1600 * 100
         m.YtdReturnPercent.Should().Be(-25m);             // (1200-1600)/1600
         m.CanBuy.Should().BeTrue();                       // 15000 < 18000 → 击球
         m.ShouldSell.Should().BeFalse();                  // 15000 > 28000 假
@@ -73,6 +74,7 @@ public class HoldingCalculatorTests
         m.Currency.Should().Be(Currency.HKD);
         m.TotalMarketCapCnyYi.Should().Be(27000m);   // 3e12 * 0.9 / 1e8
         m.HoldingValueCny.Should().Be(54000m);        // 300 * 200 * 0.9
+        m.YearStartValueCny.Should().Be(45000m);      // 250 * 200 * 0.9
         m.YtdReturnPercent.Should().Be(20m);          // (300-250)/250, 币种自身不折
         m.CanBuy.Should().BeTrue();                   // 27000 < 30000 → 击球
         m.ShouldSell.Should().BeFalse();
@@ -92,6 +94,7 @@ public class HoldingCalculatorTests
         var m = HoldingCalculator.Compute(quote, config, Rate09, yearStartClose: null);
 
         m.HoldingValueCny.Should().BeNull();          // 无持股
+        m.YearStartValueCny.Should().BeNull();        // 无持股 → 年初持仓市值也为空
         m.Shares.Should().BeNull();
         m.TotalMarketCapCnyYi.Should().Be(1800m);     // 2e11 * 0.9 / 1e8
         m.CanBuy.Should().BeTrue();                    // 1800 < 3000 → 击球

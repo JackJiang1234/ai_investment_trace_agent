@@ -62,6 +62,8 @@
     <div class="tile"><div class="label">可击球</div><div class="value up">{{ Summary.BuySignalCount }}</div></div>
     <div class="tile"><div class="label">到卖点</div><div class="value down">{{ Summary.SellSignalCount }}</div></div>
     <div class="tile"><div class="label">组合总持仓市值(元)</div><div class="value">{{ Summary.TotalHoldingValueCny | math.round 0 | math.format "N0" }}</div></div>
+    <div class="tile"><div class="label">年度收益(元)</div><div class="value {{ if Summary.YtdProfitCny > 0 }}up{{ else if Summary.YtdProfitCny < 0 }}down{{ end }}">{{ Summary.YtdProfitCny | math.round 0 | math.format "N0" }}</div></div>
+    <div class="tile"><div class="label">年度收益率</div><div class="value {{ if Summary.YtdReturnPercent > 0 }}up{{ else if Summary.YtdReturnPercent < 0 }}down{{ end }}">{{ if Summary.YtdReturnPercent }}{{ Summary.YtdReturnPercent | math.round 2 }}%{{ else }}—{{ end }}</div></div>
   </div>
 
   {{~ if Buyable.size > 0 ~}}

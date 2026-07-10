@@ -30,6 +30,11 @@ public static class HoldingCalculator
             ? converter.ToCny(quote.Price * shares, currency)
             : null;
 
+        // 年初持仓市值：年初收盘 × 份数，折人民币；用于组合年度收益。需同时有份数与年初收盘。
+        decimal? yearStartValueCny = config.Shares is { } sh && yearStartClose is { } ysClose && ysClose > 0
+            ? converter.ToCny(ysClose * sh, currency)
+            : null;
+
         decimal? ytd = yearStartClose is { } baseClose && baseClose > 0
             ? (quote.Price - baseClose) / baseClose * 100m
             : null;
@@ -47,6 +52,7 @@ public static class HoldingCalculator
             CostPrice = config.CostPrice,
             TotalMarketCapCnyYi = totalCapCnyYi,
             HoldingValueCny = holdingValueCny,
+            YearStartValueCny = yearStartValueCny,
             IdealBuyYi = config.IdealBuyMarketCapYi,
             SellYi = config.SellMarketCapYi,
             YtdReturnPercent = ytd,

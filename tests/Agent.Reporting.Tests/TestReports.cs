@@ -37,6 +37,7 @@ internal static class TestReports
                 CostPrice = 1450m,
                 TotalMarketCapCnyYi = 15000m,
                 HoldingValueCny = 119930m,
+                YearStartValueCny = 126000m,
                 IdealBuyYi = 18000m,
                 SellYi = 28000m,
                 YtdReturnPercent = -5.2m,
