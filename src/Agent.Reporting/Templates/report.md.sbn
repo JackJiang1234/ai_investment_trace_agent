@@ -24,6 +24,8 @@
 {{~ for g in Groups ~}}
 ## {{ g.Name }}
 
+{{~ group_has_ann = false ~}}
+{{~ for s in g.Stocks ~}}{{~ if s.Announcements.size > 0 ~}}{{~ group_has_ann = true ~}}{{~ end ~}}{{~ end ~}}
 {{~ for s in g.Stocks ~}}
 {{~ hd = s.Holding ~}}
 ### {{ s.Quote.Name }}（{{ s.Quote.Code }}） {{ if hd.CanBuy }}🔴 可以击球{{ end }}{{ if hd.ShouldSell }}｜可考虑卖出{{ end }}
@@ -46,6 +48,9 @@
   - {{ a.DateText }} `{{ a.Type }}` [{{ a.Title }}]({{ a.Url }})
 {{~ end ~}}
 {{~ end ~}}
+{{~ end ~}}
+{{~ if !group_has_ann ~}}
+_本周无新增重要公告_
 {{~ end ~}}
 {{~ end ~}}
 

@@ -36,6 +36,7 @@
   .ann { margin: 0.4rem 0 0; padding-left: 1.1rem; }
   .ann li { margin: 0.15rem 0; font-size: 0.85rem; }
   .ann-date { color: #888; font-variant-numeric: tabular-nums; }
+  .ann-none { color: #aaa; font-size: 0.85rem; margin: 0.3rem 0 0.6rem; }
   .fin { margin-top: 0.5rem; font-size: 0.85rem; color: #444; background: #f4f6f8; border-radius: 6px; padding: 0.4rem 0.6rem; }
   a { color: #2a6; text-decoration: none; }
   .foot { color: #888; font-size: 0.78rem; margin-top: 1.5rem; border-top: 1px solid #e5e5e5; padding-top: 0.75rem; }
@@ -83,6 +84,8 @@
 
   {{~ for g in Groups ~}}
   <h2>{{ g.Name }}</h2>
+  {{~ group_has_ann = false ~}}
+  {{~ for s in g.Stocks ~}}{{~ if s.Announcements.size > 0 ~}}{{~ group_has_ann = true ~}}{{~ end ~}}{{~ end ~}}
   {{~ for s in g.Stocks ~}}
   {{~ hd = s.Holding ~}}
   <div class="card {{ if hd.CanBuy }}hit{{ end }}">
@@ -120,6 +123,9 @@
     </ul>
     {{~ end ~}}
   </div>
+  {{~ end ~}}
+  {{~ if !group_has_ann ~}}
+  <p class="ann-none">本周无新增重要公告</p>
   {{~ end ~}}
   {{~ end ~}}
 

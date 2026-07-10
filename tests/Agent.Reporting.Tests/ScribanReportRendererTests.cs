@@ -56,6 +56,44 @@ public class ScribanReportRendererTests
     }
 
     [Fact]
+    public void Render_NoAnnouncementsInGroup_ShowsPlaceholder()
+    {
+        // Sample 两只股票本周均无公告 → 每个分组显示占位提示。
+        var md = _renderer.Render(TestReports.Sample(), ReportFormat.Markdown);
+        var html = _renderer.Render(TestReports.Sample(), ReportFormat.Html);
+
+        md.Should().Contain("本周无新增重要公告");
+        html.Should().Contain("本周无新增重要公告");
+    }
+
+    [Fact]
+    public void Render_GroupWithAnnouncement_OmitsPlaceholder()
+    {
+        var stock = new StockAnalysis
+        {
+            Quote = TestReports.Quote("600519.SH", "贵州茅台", 1200m),
+            Holding = new HoldingMetrics { Group = "核心持仓", Currency = Currency.CNY },
+            Announcements =
+            [
+                new Announcement { Date = new DateOnly(2026, 7, 10), Title = "分派实施公告", Type = "分派", Url = "https://x" },
+            ],
+        };
+        IReadOnlyList<StockAnalysis> stocks = [stock];
+        var report = new DailyReport
+        {
+            Date = new DateOnly(2026, 7, 10),
+            Summary = PortfolioSummary.From(stocks),
+            Stocks = stocks,
+            HkdToCny = 0.87m,
+        };
+
+        var md = _renderer.Render(report, ReportFormat.Markdown);
+
+        md.Should().Contain("分派实施公告");
+        md.Should().NotContain("本周无新增重要公告");
+    }
+
+    [Fact]
     public void Render_FootnoteShowsExchangeRate()
     {
         var html = _renderer.Render(TestReports.Sample(), ReportFormat.Html);

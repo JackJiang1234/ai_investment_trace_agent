@@ -26,6 +26,8 @@
 
   {{~ for g in Groups ~}}
   <p style="font-size:16px;font-weight:600;border-left:4px solid #888;padding-left:8px;margin:18px 0 6px;">{{ g.Name }}</p>
+  {{~ group_has_ann = false ~}}
+  {{~ for s in g.Stocks ~}}{{~ if s.Announcements.size > 0 ~}}{{~ group_has_ann = true ~}}{{~ end ~}}{{~ end ~}}
   {{~ for s in g.Stocks ~}}
   {{~ hd = s.Holding ~}}
   <section style="border:1px solid {{ if hd.CanBuy }}#e0483d{{ else }}#e5e5e5{{ end }};border-radius:10px;padding:12px 14px;margin:8px 0;">
@@ -50,6 +52,9 @@
     {{~ end ~}}
     {{~ end ~}}
   </section>
+  {{~ end ~}}
+  {{~ if !group_has_ann ~}}
+  <p style="color:#aaa;font-size:13px;margin:4px 0 8px;">本周无新增重要公告</p>
   {{~ end ~}}
   {{~ end ~}}
 
