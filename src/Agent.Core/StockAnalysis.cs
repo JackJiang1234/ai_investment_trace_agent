@@ -6,6 +6,9 @@ public sealed record StockAnalysis
     /// <summary>当日行情快照。</summary>
     public required Quote Quote { get; init; }
 
+    /// <summary>持仓与买卖点指标（人民币口径）；由编排层计算填入。</summary>
+    public HoldingMetrics? Holding { get; init; }
+
     /// <summary>经重要类型过滤后的近期公告。</summary>
     public IReadOnlyList<Announcement> Announcements { get; init; } = [];
 
