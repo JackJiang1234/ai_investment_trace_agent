@@ -30,7 +30,10 @@ static void ConfigureHttp(HttpClient client)
 builder.Services.AddHttpClient<IQuoteSource, EastMoneyQuoteSource>(ConfigureHttp);
 builder.Services.AddHttpClient<IKlineSource, EastMoneyKlineSource>(ConfigureHttp);
 builder.Services.AddHttpClient<IFundFlowSource, EastMoneyFundFlowSource>(ConfigureHttp);
-builder.Services.AddHttpClient<IAnnouncementSource, EastMoneyAnnouncementSource>(ConfigureHttp);
+// 公告按市场路由：A股→东财，港股→披露易。两个具体源各自带 HttpClient，由 RoutingAnnouncementSource 分派。
+builder.Services.AddHttpClient<EastMoneyAnnouncementSource>(ConfigureHttp);
+builder.Services.AddHttpClient<HkexnewsAnnouncementSource>(ConfigureHttp);
+builder.Services.AddSingleton<IAnnouncementSource, RoutingAnnouncementSource>();
 builder.Services.AddSingleton<IReportRenderer, ScribanReportRenderer>();
 builder.Services.AddSingleton<IReportDelivery>(_ => new FileReportDelivery(options.Report.OutputDirectory));
 builder.Services.AddSingleton<ISummarizer, NoOpSummarizer>();

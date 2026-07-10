@@ -29,6 +29,30 @@ public static class AnnouncementFilter
         return result;
     }
 
+    /// <summary>
+    /// 剔除类型或标题命中任一 <paramref name="excludeKeywords"/> 的公告（用于港股排除例行件）。
+    /// 排除列表为空时原样返回。
+    /// </summary>
+    public static IReadOnlyList<Announcement> ExcludeRoutine(
+        IReadOnlyList<Announcement> announcements, IReadOnlyList<string> excludeKeywords)
+    {
+        if (excludeKeywords.Count == 0)
+        {
+            return announcements;
+        }
+
+        var result = new List<Announcement>(announcements.Count);
+        foreach (var ann in announcements)
+        {
+            if (!ContainsAny(ann.Type, excludeKeywords) && !ContainsAny(ann.Title, excludeKeywords))
+            {
+                result.Add(ann);
+            }
+        }
+
+        return result;
+    }
+
     private static bool ContainsAny(string text, IReadOnlyList<string> keywords)
     {
         foreach (var kw in keywords)

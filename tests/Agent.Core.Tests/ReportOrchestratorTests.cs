@@ -207,4 +207,25 @@ public class ReportOrchestratorTests
         report.Stocks[0].Announcements.Should().ContainSingle()
             .Which.Title.Should().Contain("质押");
     }
+
+    [Fact]
+    public async Task RunAsync_HongKong_ExcludesRoutineAnnouncements()
+    {
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(Quote("00700.HK", 100m));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(100m)]);
+        _announcements.GetRecentAnnouncementsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(new Announcement[]
+            {
+                new() { Date = Date, Title = "Next Day Disclosure Return", Type = "Next Day Disclosure Returns - [Share Buyback]", Url = "https://h/1" },
+                new() { Date = Date, Title = "Discloseable Transaction", Type = "Announcements and Notices", Url = "https://h/2" },
+            });
+
+        var report = await Create(OptionsFor("00700.HK")).RunAsync(Date);
+
+        // 港股走排除例行件：Next Day Disclosure 被剔除，实质公告保留
+        report.Stocks[0].Announcements.Should().ContainSingle()
+            .Which.Title.Should().Be("Discloseable Transaction");
+    }
 }

@@ -25,6 +25,12 @@ public sealed class AnnouncementOptions
 
     /// <summary>每只股票拉取的公告条数。</summary>
     public int Lookback { get; set; } = 20;
+
+    /// <summary>港股例行公告排除关键词（英文，命中类型/标题即剔除，如每日披露/月报）。</summary>
+    public List<string> HkExcludeTypes { get; set; } =
+    [
+        "Next Day Disclosure", "Monthly Return", "Proxy Form", "Notification Letter",
+    ];
 }
 
 /// <summary>报告输出配置。</summary>

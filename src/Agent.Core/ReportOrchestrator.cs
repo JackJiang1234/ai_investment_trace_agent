@@ -147,7 +147,11 @@ public sealed class ReportOrchestrator
         {
             var raw = await _announcementSource.GetRecentAnnouncementsAsync(
                 code, _options.Announcements.Lookback, ct);
-            return AnnouncementFilter.FilterImportant(raw, _options.Announcements);
+
+            // 过滤按市场区分：A股用中文重要类型包含匹配；港股（英文标题）改为排除例行件。
+            return code.Market == Market.HK
+                ? AnnouncementFilter.ExcludeRoutine(raw, _options.Announcements.HkExcludeTypes)
+                : AnnouncementFilter.FilterImportant(raw, _options.Announcements);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {

@@ -50,4 +50,28 @@ public class AnnouncementFilterTests
 
         AnnouncementFilter.FilterImportant([Ann("业绩", "业绩")], options).Should().BeEmpty();
     }
+
+    [Fact]
+    public void ExcludeRoutine_RemovesMatchingTypeOrTitle()
+    {
+        string[] exclude = ["Next Day Disclosure", "Monthly Return"];
+        var anns = new[]
+        {
+            Ann("Next Day Disclosure Return", "Next Day Disclosure Returns - [Share Buyback]"),
+            Ann("Monthly Return of Equity Issuer", "Monthly Returns"),
+            Ann("Discloseable Transaction - Acquisition", "Announcements and Notices"),
+        };
+
+        var result = AnnouncementFilter.ExcludeRoutine(anns, exclude);
+
+        result.Should().ContainSingle().Which.Title.Should().Contain("Discloseable Transaction");
+    }
+
+    [Fact]
+    public void ExcludeRoutine_EmptyExcludeList_KeepsAll()
+    {
+        var anns = new[] { Ann("A", "x"), Ann("B", "y") };
+
+        AnnouncementFilter.ExcludeRoutine(anns, []).Should().HaveCount(2);
+    }
 }
