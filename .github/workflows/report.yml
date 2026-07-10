@@ -1,11 +1,11 @@
-name: Daily Report
+name: Weekly Report
 
-# 每交易日收盘后生成追踪报告并提交回仓库。
-# cron 为 UTC 且高峰期会延迟；09:00 UTC = 北京 17:00，收盘后留足缓冲。
-# 限定周一至周五触发；节假日由程序内交易日判断跳过（见 appsettings Schedule）。
+# 每周五收盘后生成追踪周报并提交回仓库（周跟踪）。
+# cron 为 UTC 且高峰期会延迟；13:00 UTC = 北京周五 21:00（晚 9 点），收盘后约 5 小时缓冲充足。
+# 周五照常跑，不做交易日判断；若周五休市，行情接口返回最近交易日收盘快照。
 on:
   schedule:
-    - cron: '0 9 * * 1-5'
+    - cron: '0 13 * * 5'
   workflow_dispatch:
 
 permissions:
@@ -38,8 +38,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add reports/
           if git diff --staged --quiet; then
-            echo "无报告变更（可能为非交易日），跳过提交。"
+            echo "无报告变更，跳过提交。"
           else
-            git commit -m "chore(report): 追踪报告 $(date -u +%Y-%m-%d)"
+            git commit -m "chore(report): 追踪周报 $(date -u +%Y-%m-%d)"
             git push
           fi
