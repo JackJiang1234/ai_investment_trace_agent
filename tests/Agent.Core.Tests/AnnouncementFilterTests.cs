@@ -34,6 +34,20 @@ public class AnnouncementFilterTests
         result.Should().NotContain(a => a.Title.Contains("办公地址"));
     }
 
+    [Theory]
+    [InlineData("公司关于子公司增资扩股引入投资者暨关联交易完成的公告", "增资扩股/关联交易")]
+    [InlineData("公司关于参与投资基金的进展情况公告", "投资设立公司")]
+    [InlineData("公司关于收到深圳证券交易所中止审核通知的公告", "其他")]
+    public void FilterImportant_DefaultIncludeTypes_KeepsMaterialCorporateActions(string title, string type)
+    {
+        // 回归锁定：增资扩股/关联交易/对外投资/中止审核等材料事项应被默认白名单保留。
+        var options = new AnnouncementOptions(); // 默认 IncludeTypes
+
+        var result = AnnouncementFilter.FilterImportant([Ann(title, type)], options);
+
+        result.Should().ContainSingle();
+    }
+
     [Fact]
     public void FilterImportant_WhenDisabled_KeepsAll()
     {
