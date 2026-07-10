@@ -95,10 +95,10 @@ public class ReportPipelineSmokeTests : IDisposable
 
         html.Should().Contain("腾讯控股");
         html.Should().Contain("风险提示").And.Contain("减持"); // 风险提示区
-        html.Should().Contain("近期公告");
+        html.Should().Contain("主要股东减持股份");              // 公告进入个股卡片
         md.Should().Contain("腾讯控股").And.Contain("2026-07-08");
         md.Should().Contain("风险提示").And.Contain("减持");
-        md.Should().Contain("财报").And.Contain("2026年 一季报");
+        md.Should().Contain("2026年 一季报");                   // 财报速览进卡片
     }
 
     public void Dispose()

@@ -41,4 +41,10 @@ public sealed record HoldingMetrics
 
     /// <summary>组合内权重（%）= 该股持仓市值 ÷ 全部持仓总市值；由编排层跨股汇总后回填。</summary>
     public decimal? HoldingRatioPercent { get; init; }
+
+    /// <summary>每股价格的币种符号（港股 HK$、A股 ¥），供报告展示。</summary>
+    public string CurrencySymbol => Currency == Currency.HKD ? "HK$" : "¥";
+
+    /// <summary>是否为持仓股票（有持股份数）；观察池为 false，卡片精简。</summary>
+    public bool IsHolding => Shares.HasValue;
 }
