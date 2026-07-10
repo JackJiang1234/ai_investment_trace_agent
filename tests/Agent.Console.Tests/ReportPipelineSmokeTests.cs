@@ -62,6 +62,22 @@ public class ReportPipelineSmokeTests : IDisposable
             {
                 new() { Date = new(2026, 7, 8), Title = "腾讯控股:关于主要股东减持股份的公告", Type = "减持", Url = "https://x" },
             });
+        var financials = Substitute.For<IFinancialSource>();
+        financials.GetFinancialsAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(new FinancialInfo
+            {
+                Snapshot = new FinancialSnapshot
+                {
+                    ReportPeriod = new(2026, 3, 31),
+                    PeriodLabel = "2026年 一季报",
+                    NoticeDate = new(2026, 4, 25),
+                    Revenue = 54_702_912_385m,
+                    NetProfit = 27_242_512_886m,
+                    RevenueYoY = 6.34m,
+                    NetProfitYoY = 1.47m,
+                    Roe = 10.57m,
+                },
+            });
 
         var options = new AgentOptions
         {
@@ -75,7 +91,7 @@ public class ReportPipelineSmokeTests : IDisposable
         };
 
         var orchestrator = new ReportOrchestrator(
-            quotes, klines, fundFlows, announcements,
+            quotes, klines, fundFlows, announcements, financials,
             new ScribanReportRenderer(),
             new FileReportDelivery(_dir),
             new NoOpSummarizer(),
@@ -95,6 +111,7 @@ public class ReportPipelineSmokeTests : IDisposable
         md.Should().Contain("腾讯控股").And.Contain("2026-07-08");
         md.Should().Contain("主力净流入");
         md.Should().Contain("风险提示").And.Contain("减持");
+        md.Should().Contain("财报").And.Contain("2026年 一季报");
     }
 
     public void Dispose()

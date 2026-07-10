@@ -12,6 +12,7 @@ public sealed class ReportOrchestrator
     private readonly IKlineSource _klineSource;
     private readonly IFundFlowSource _fundFlowSource;
     private readonly IAnnouncementSource _announcementSource;
+    private readonly IFinancialSource _financialSource;
     private readonly IReportRenderer _renderer;
     private readonly IReportDelivery _delivery;
     private readonly ISummarizer _summarizer;
@@ -23,6 +24,7 @@ public sealed class ReportOrchestrator
         IKlineSource klineSource,
         IFundFlowSource fundFlowSource,
         IAnnouncementSource announcementSource,
+        IFinancialSource financialSource,
         IReportRenderer renderer,
         IReportDelivery delivery,
         ISummarizer summarizer,
@@ -33,6 +35,7 @@ public sealed class ReportOrchestrator
         _klineSource = klineSource;
         _fundFlowSource = fundFlowSource;
         _announcementSource = announcementSource;
+        _financialSource = financialSource;
         _renderer = renderer;
         _delivery = delivery;
         _summarizer = summarizer;
@@ -112,6 +115,7 @@ public sealed class ReportOrchestrator
             {
                 FundFlow = await TryGetFundFlowAsync(code, ct),
                 Announcements = await TryGetAnnouncementsAsync(code, ct),
+                Financials = await TryGetFinancialsAsync(code, ct),
             };
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -157,6 +161,20 @@ public sealed class ReportOrchestrator
         {
             _logger.LogWarning(ex, "公告获取失败，降级为空：{Code}", code);
             return [];
+        }
+    }
+
+    /// <summary>拉取财报；补充信息，失败降级为 null。</summary>
+    private async Task<FinancialInfo?> TryGetFinancialsAsync(StockCode code, CancellationToken ct)
+    {
+        try
+        {
+            return await _financialSource.GetFinancialsAsync(code, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "财报获取失败，降级为空：{Code}", code);
+            return null;
         }
     }
 

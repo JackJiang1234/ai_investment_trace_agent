@@ -36,6 +36,28 @@
 | {{ s.Quote.Code }} | {{ s.Quote.Name }} | {{ s.Quote.Price }} | {{ s.Quote.ChangePercent }}% | {{ s.Quote.VolumeRatio }} | {{ s.Quote.TurnoverRate }}% | {{ if s.Ma5 }}{{ s.Ma5 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Ma20 }}{{ s.Ma20 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Ma60 }}{{ s.Ma60 | math.round 2 }}{{ else }}—{{ end }} | {{ if s.Return5 }}{{ s.Return5 | math.round 2 }}%{{ else }}—{{ end }} | {{ if s.Return20 }}{{ s.Return20 | math.round 2 }}%{{ else }}—{{ end }} | {{ if s.FundFlow }}{{ s.FundFlow.MainNetInflowInYi | math.round 2 }}{{ else }}—{{ end }} |
 {{~ end ~}}
 
+{{~ has_fin = false ~}}
+{{~ for s in Stocks ~}}{{~ if s.Financials && s.Financials.Snapshot ~}}{{~ has_fin = true ~}}{{~ end ~}}{{~ end ~}}
+{{~ if has_fin ~}}
+## 财报速览
+
+| 代码 | 名称 | 报告期 | 营收(亿) | 营收同比 | 净利(亿) | 净利同比 | ROE | 毛利率 |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+{{~ for s in Stocks ~}}
+{{~ if s.Financials && s.Financials.Snapshot ~}}
+{{~ fs = s.Financials.Snapshot ~}}
+| {{ s.Quote.Code }} | {{ s.Quote.Name }} | {{ fs.PeriodLabel }} | {{ fs.RevenueInYi | math.round 2 }} | {{ if fs.RevenueYoY }}{{ fs.RevenueYoY | math.round 2 }}%{{ else }}—{{ end }} | {{ fs.NetProfitInYi | math.round 2 }} | {{ if fs.NetProfitYoY }}{{ fs.NetProfitYoY | math.round 2 }}%{{ else }}—{{ end }} | {{ if fs.Roe }}{{ fs.Roe | math.round 2 }}%{{ else }}—{{ end }} | {{ if fs.GrossMargin }}{{ fs.GrossMargin | math.round 2 }}%{{ else }}—{{ end }} |
+{{~ end ~}}
+{{~ end ~}}
+
+{{~ for s in Stocks ~}}
+{{~ if s.Financials && s.Financials.Forecast ~}}
+{{~ fc = s.Financials.Forecast ~}}
+> 📊 **{{ s.Quote.Name }} 业绩预告**（{{ fc.Type }}，{{ fc.NoticeDateText }}）：{{ fc.Content }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+
 {{~ has_ann = false ~}}
 {{~ for s in Stocks ~}}{{~ if s.Announcements.size > 0 ~}}{{~ has_ann = true ~}}{{~ end ~}}{{~ end ~}}
 {{~ if has_ann ~}}

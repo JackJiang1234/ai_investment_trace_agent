@@ -34,6 +34,7 @@ builder.Services.AddHttpClient<IFundFlowSource, EastMoneyFundFlowSource>(Configu
 builder.Services.AddHttpClient<EastMoneyAnnouncementSource>(ConfigureHttp);
 builder.Services.AddHttpClient<HkexnewsAnnouncementSource>(ConfigureHttp);
 builder.Services.AddSingleton<IAnnouncementSource, RoutingAnnouncementSource>();
+builder.Services.AddHttpClient<IFinancialSource, EastMoneyFinancialSource>(ConfigureHttp);
 builder.Services.AddSingleton<IReportRenderer, ScribanReportRenderer>();
 builder.Services.AddSingleton<IReportDelivery>(_ => new FileReportDelivery(options.Report.OutputDirectory));
 builder.Services.AddSingleton<ISummarizer, NoOpSummarizer>();

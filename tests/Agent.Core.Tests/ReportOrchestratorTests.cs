@@ -11,6 +11,7 @@ public class ReportOrchestratorTests
     private readonly IKlineSource _klines = Substitute.For<IKlineSource>();
     private readonly IFundFlowSource _fundFlows = Substitute.For<IFundFlowSource>();
     private readonly IAnnouncementSource _announcements = Substitute.For<IAnnouncementSource>();
+    private readonly IFinancialSource _financials = Substitute.For<IFinancialSource>();
     private readonly IReportRenderer _renderer = Substitute.For<IReportRenderer>();
     private readonly IReportDelivery _delivery = Substitute.For<IReportDelivery>();
     private readonly ISummarizer _summarizer = Substitute.For<ISummarizer>();
@@ -60,7 +61,7 @@ public class ReportOrchestratorTests
             .Returns(ci => $"[{ci.ArgAt<ReportFormat>(1)}]");
         _summarizer.SummarizeAsync(Arg.Any<DailyReport>(), Arg.Any<CancellationToken>())
             .Returns((string?)null);
-        return new ReportOrchestrator(_quotes, _klines, _fundFlows, _announcements,
+        return new ReportOrchestrator(_quotes, _klines, _fundFlows, _announcements, _financials,
             _renderer, _delivery, _summarizer, options, NullLogger<ReportOrchestrator>.Instance);
     }
 
@@ -227,5 +228,48 @@ public class ReportOrchestratorTests
         // 港股走排除例行件：Next Day Disclosure 被剔除，实质公告保留
         report.Stocks[0].Announcements.Should().ContainSingle()
             .Which.Title.Should().Be("Discloseable Transaction");
+    }
+
+    [Fact]
+    public async Task RunAsync_AttachesFinancials()
+    {
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(Quote("600519.SH", 100m));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(100m)]);
+        _financials.GetFinancialsAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(new FinancialInfo
+            {
+                Snapshot = new FinancialSnapshot
+                {
+                    ReportPeriod = new DateOnly(2026, 3, 31),
+                    PeriodLabel = "2026年 一季报",
+                    NoticeDate = new DateOnly(2026, 4, 25),
+                    Revenue = 54_702_912_385.23m,
+                    NetProfit = 27_242_512_886.45m,
+                    RevenueYoY = 6.34m,
+                },
+            });
+
+        var report = await Create(OptionsFor("600519.SH")).RunAsync(Date);
+
+        var fin = report.Stocks[0].Financials;
+        fin.Should().NotBeNull();
+        fin!.Snapshot!.PeriodLabel.Should().Be("2026年 一季报");
+    }
+
+    [Fact]
+    public async Task RunAsync_FinancialsFailure_DegradesToNull()
+    {
+        _quotes.GetQuoteAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns(Quote("600519.SH", 100m));
+        _klines.GetDailyBarsAsync(Arg.Any<StockCode>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([Bar(100m)]);
+        _financials.GetFinancialsAsync(Arg.Any<StockCode>(), Arg.Any<CancellationToken>())
+            .Returns<FinancialInfo?>(_ => throw new HttpRequestException("fin down"));
+
+        var report = await Create(OptionsFor("600519.SH")).RunAsync(Date);
+
+        report.Stocks.Should().ContainSingle().Which.Financials.Should().BeNull();
     }
 }

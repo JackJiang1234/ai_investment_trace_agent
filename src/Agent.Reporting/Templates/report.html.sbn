@@ -22,6 +22,7 @@
   .ann-list { margin: 0; padding-left: 1.2rem; }
   .ann-list li { margin: 0.15rem 0; font-size: 0.9rem; }
   .ann-date { color: #888; font-variant-numeric: tabular-nums; }
+  .forecast { background: #f0f6ff; border-left: 3px solid #6aa; border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.9rem; }
   a { color: #2a6; text-decoration: none; }
   a:hover { text-decoration: underline; }
   .table-wrap { overflow-x: auto; }
@@ -38,6 +39,7 @@
     .card, table, .alerts { background: #242424; border-color: #3a3a3a; }
     .risk { background: #2e2020; border-color: #6a3a3a; }
     .tag { background: #333; color: #ccc; }
+    .forecast { background: #1e2733; border-left-color: #488; }
     th { background: #2e2e2e; }
     .up { color: #ff6b6b; } .down { color: #51cf66; }
     a { color: #6c9; }
@@ -103,6 +105,43 @@
     </tbody>
   </table>
   </div>
+
+  {{~ has_fin = false ~}}
+  {{~ for s in Stocks ~}}{{~ if s.Financials && s.Financials.Snapshot ~}}{{~ has_fin = true ~}}{{~ end ~}}{{~ end ~}}
+  {{~ if has_fin ~}}
+  <h2>财报速览</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>代码</th><th>名称</th><th>报告期</th><th>营收(亿)</th><th>营收同比</th><th>净利(亿)</th><th>净利同比</th><th>ROE</th><th>毛利率</th></tr>
+    </thead>
+    <tbody>
+      {{~ for s in Stocks ~}}
+      {{~ if s.Financials && s.Financials.Snapshot ~}}
+      {{~ fs = s.Financials.Snapshot ~}}
+      <tr>
+        <td class="code">{{ s.Quote.Code }}</td>
+        <td class="name">{{ s.Quote.Name }}</td>
+        <td class="name">{{ fs.PeriodLabel }}</td>
+        <td>{{ fs.RevenueInYi | math.round 2 }}</td>
+        <td class="{{ if fs.RevenueYoY > 0 }}up{{ else if fs.RevenueYoY < 0 }}down{{ end }}">{{ if fs.RevenueYoY }}{{ fs.RevenueYoY | math.round 2 }}%{{ else }}<span class="muted">—</span>{{ end }}</td>
+        <td>{{ fs.NetProfitInYi | math.round 2 }}</td>
+        <td class="{{ if fs.NetProfitYoY > 0 }}up{{ else if fs.NetProfitYoY < 0 }}down{{ end }}">{{ if fs.NetProfitYoY }}{{ fs.NetProfitYoY | math.round 2 }}%{{ else }}<span class="muted">—</span>{{ end }}</td>
+        <td>{{ if fs.Roe }}{{ fs.Roe | math.round 2 }}%{{ else }}<span class="muted">—</span>{{ end }}</td>
+        <td>{{ if fs.GrossMargin }}{{ fs.GrossMargin | math.round 2 }}%{{ else }}<span class="muted">—</span>{{ end }}</td>
+      </tr>
+      {{~ end ~}}
+      {{~ end ~}}
+    </tbody>
+  </table>
+  </div>
+  {{~ for s in Stocks ~}}
+  {{~ if s.Financials && s.Financials.Forecast ~}}
+  {{~ fc = s.Financials.Forecast ~}}
+  <p class="forecast">📊 <strong>{{ s.Quote.Name }} 业绩预告</strong>（{{ fc.Type }} · {{ fc.NoticeDateText }}）：{{ fc.Content }}</p>
+  {{~ end ~}}
+  {{~ end ~}}
+  {{~ end ~}}
 
   {{~ has_ann = false ~}}
   {{~ for s in Stocks ~}}{{~ if s.Announcements.size > 0 ~}}{{~ has_ann = true ~}}{{~ end ~}}{{~ end ~}}

@@ -33,6 +33,9 @@ public sealed record StockAnalysis
     /// <summary>经重要类型过滤后的近期公告。</summary>
     public IReadOnlyList<Announcement> Announcements { get; init; } = [];
 
+    /// <summary>财报信息（关键财务数据 + 业绩预告）；无数据或获取失败为 null。</summary>
+    public FinancialInfo? Financials { get; init; }
+
     /// <summary>命中的异动提醒。</summary>
     public IReadOnlyList<TriggeredAlert> Alerts { get; init; } = [];
 
