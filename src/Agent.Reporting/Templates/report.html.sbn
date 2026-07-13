@@ -56,7 +56,7 @@
 </style>
 </head>
 <body>
-  <h1>股票追踪周报</h1>
+  <h1>持仓跟踪周报</h1>
   <div class="meta">{{ DateText }} · 周五收盘后自动生成</div>
 
   <h2>组合概览</h2>
