@@ -9,17 +9,26 @@ public sealed class StockConfig
     /// <summary>分组标签，如"核心持仓"/"观察池"。</summary>
     public string? Group { get; set; }
 
+    /// <summary>证券类型；不配则按代码前缀自动识别（沪 51/56/58、深 15/16 为 ETF）。</summary>
+    public SecurityType? SecurityType { get; set; }
+
     /// <summary>持股份数；观察池可空。</summary>
     public long? Shares { get; set; }
 
     /// <summary>成本价（每股，原币种）；观察池可空。</summary>
     public decimal? CostPrice { get; set; }
 
-    /// <summary>理想买点：目标总市值（亿元人民币）。当前总市值(折人民币) 低于此值 → 可以击球。</summary>
+    /// <summary>理想买点：目标总市值（亿元人民币）。<b>股票</b>口径：当前总市值(折人民币) 低于此值 → 可以击球。</summary>
     public decimal? IdealBuyMarketCapYi { get; set; }
 
-    /// <summary>1 年内卖点：目标总市值（亿元人民币）。当前总市值(折人民币) 高于此值 → 提示可考虑卖出。</summary>
+    /// <summary>1 年内卖点：目标总市值（亿元人民币）。<b>股票</b>口径：当前总市值(折人民币) 高于此值 → 提示可考虑卖出。</summary>
     public decimal? SellMarketCapYi { get; set; }
+
+    /// <summary>理想买入价（每股，原币种）。<b>ETF</b>口径：现价低于此值 → 可以击球。</summary>
+    public decimal? IdealBuyPrice { get; set; }
+
+    /// <summary>卖出价（每股，原币种）。<b>ETF</b>口径：现价高于此值 → 提示可考虑卖出。</summary>
+    public decimal? SellPrice { get; set; }
 }
 
 /// <summary>公告追踪配置。</summary>

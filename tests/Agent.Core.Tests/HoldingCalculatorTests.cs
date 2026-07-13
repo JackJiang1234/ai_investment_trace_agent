@@ -158,6 +158,66 @@ public class HoldingCalculatorTests
     }
 
     [Fact]
+    public void Etf_ExplicitType_UsesPriceThresholds_NotMarketCap()
+    {
+        // ETF f116=基金规模 40亿; 若按市值口径 40<700 会误判击球。显式 ETF → 按价格口径。
+        var quote = Quote("515170.SH", price: 0.439m, totalMarketCap: 4_000_000_000m);
+        var config = new StockConfig
+        {
+            Code = "515170.SH",
+            SecurityType = SecurityType.Etf,
+            Shares = 309400,
+            CostPrice = 0.56m,
+            IdealBuyPrice = 0.50m,
+            SellPrice = 0.75m,
+        };
+
+        var m = HoldingCalculator.Compute(quote, config, Rate09, yearStartClose: 0.557m);
+
+        m.IsEtf.Should().BeTrue();
+        m.TotalMarketCapCnyYi.Should().Be(40m);   // 基金规模，仅展示用
+        m.CanBuy.Should().BeTrue();                // 0.439 < 0.50 理想买入价
+        m.ShouldSell.Should().BeFalse();           // 0.439 > 0.75 假
+        m.IdealBuyPrice.Should().Be(0.50m);
+        m.HoldingValueCny.Should().Be(0.439m * 309400);
+    }
+
+    [Fact]
+    public void Etf_AutoDetectedByCodePrefix_WhenTypeOmitted()
+    {
+        var quote = Quote("515170.SH", price: 0.80m, totalMarketCap: 4_000_000_000m);
+        var config = new StockConfig
+        {
+            Code = "515170.SH",           // 未配 SecurityType → 按前缀识别为 ETF
+            IdealBuyPrice = 0.50m,
+            SellPrice = 0.75m,
+        };
+
+        var m = HoldingCalculator.Compute(quote, config, Rate09, yearStartClose: null);
+
+        m.IsEtf.Should().BeTrue();
+        m.CanBuy.Should().BeFalse();   // 0.80 < 0.50 假
+        m.ShouldSell.Should().BeTrue(); // 0.80 > 0.75 卖点
+    }
+
+    [Fact]
+    public void Etf_MarketCapThresholdsIgnored_EvenIfConfigured()
+    {
+        // 即使误配了市值阈值，ETF 也不按市值判定（避免"规模<阈值恒击球"）。
+        var quote = Quote("515170.SH", price: 0.80m, totalMarketCap: 4_000_000_000m);
+        var config = new StockConfig
+        {
+            Code = "515170.SH",
+            SecurityType = SecurityType.Etf,
+            IdealBuyMarketCapYi = 700m,   // 40 < 700 但不应触发
+        };
+
+        var m = HoldingCalculator.Compute(quote, config, Rate09, yearStartClose: null);
+
+        m.CanBuy.Should().BeFalse();
+    }
+
+    [Fact]
     public void ZeroYearStartClose_YieldsNullYtd()
     {
         var quote = Quote("600519.SH", price: 1200m, totalMarketCap: 1_500_000_000_000m);

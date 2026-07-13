@@ -9,6 +9,12 @@ public sealed record HoldingMetrics
     /// <summary>分组标签（核心持仓/观察池等）。</summary>
     public string? Group { get; init; }
 
+    /// <summary>证券类型（决定买卖点口径与卡片展示）。</summary>
+    public SecurityType SecurityType { get; init; }
+
+    /// <summary>是否为 ETF（买卖点走价格口径、"当前市值"实为基金规模）。</summary>
+    public bool IsEtf => SecurityType == SecurityType.Etf;
+
     /// <summary>该股计价货币（港股 HKD、A股 CNY）。每股价格按此币种展示。</summary>
     public required Currency Currency { get; init; }
 
@@ -36,11 +42,17 @@ public sealed record HoldingMetrics
     /// <summary>对成本收益率（%，原币种，不受汇率影响）=（现价 − 成本价）÷ 成本价；无成本价或成本价≤0 为 null。</summary>
     public decimal? CostReturnPercent { get; init; }
 
-    /// <summary>理想买点（亿元人民币）。</summary>
+    /// <summary>理想买点（亿元人民币，股票口径）。</summary>
     public decimal? IdealBuyYi { get; init; }
 
-    /// <summary>1 年内卖点（亿元人民币）。</summary>
+    /// <summary>1 年内卖点（亿元人民币，股票口径）。</summary>
     public decimal? SellYi { get; init; }
+
+    /// <summary>理想买入价（每股，原币种，ETF 口径）。</summary>
+    public decimal? IdealBuyPrice { get; init; }
+
+    /// <summary>卖出价（每股，原币种，ETF 口径）。</summary>
+    public decimal? SellPrice { get; init; }
 
     /// <summary>年内涨幅（%）；无年初收盘为 null。</summary>
     public decimal? YtdReturnPercent { get; init; }

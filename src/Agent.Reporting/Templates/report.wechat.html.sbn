@@ -1,5 +1,5 @@
 <section style="font-family:-apple-system,'Microsoft YaHei',sans-serif;color:#1a1a1a;max-width:700px;margin:0 auto;line-height:1.7;font-size:15px;">
-  <h1 style="font-size:20px;margin:0 0 4px;">股票追踪周报</h1>
+  <h1 style="font-size:20px;margin:0 0 4px;">持仓跟踪周报</h1>
   <p style="color:#888;font-size:13px;margin:0 0 14px;">{{ DateText }} · 周五收盘后自动生成</p>
 
   <p style="font-size:16px;font-weight:600;border-left:4px solid #888;padding-left:8px;margin:16px 0 6px;">组合概览</p>
@@ -12,7 +12,7 @@
   <p style="font-size:16px;font-weight:600;border-left:4px solid #e0483d;padding-left:8px;margin:16px 0 6px;">🔴 可以击球</p>
   <div style="background:#fdeceb;border:1px solid #e0483d;border-radius:8px;padding:8px 12px;">
     {{~ for s in Buyable ~}}
-    <p style="margin:2px 0;">{{ s.Quote.Name }}（{{ s.Quote.Code }}）：当前市值 {{ s.Holding.TotalMarketCapCnyYi | math.round 0 }} 亿 &lt; 理想买点 {{ s.Holding.IdealBuyYi | math.round 0 }} 亿</p>
+    <p style="margin:2px 0;">{{ s.Quote.Name }}（{{ s.Quote.Code }}）：{{ if s.Holding.IsEtf }}现价 {{ s.Holding.CurrencySymbol }}{{ s.Quote.Price }} &lt; 理想买入价 {{ s.Holding.CurrencySymbol }}{{ s.Holding.IdealBuyPrice }}{{ else }}当前市值 {{ s.Holding.TotalMarketCapCnyYi | math.round 0 }} 亿 &lt; 理想买点 {{ s.Holding.IdealBuyYi | math.round 0 }} 亿{{ end }}</p>
     {{~ end ~}}
   </div>
   {{~ end ~}}
@@ -28,13 +28,22 @@
 
   {{~ for g in Groups ~}}
   <p style="font-size:16px;font-weight:600;border-left:4px solid #888;padding-left:8px;margin:18px 0 6px;">{{ g.Name }}</p>
+  {{~ card_bg = "#ffffff" ~}}
+  {{~ card_border = "#e5e5e5" ~}}
+  {{~ card_left = "" ~}}
+  {{~ if g.Name == "核心持仓" ~}}{{~ card_left = "border-left:3px solid #2aa198;" ~}}
+  {{~ else if g.Name == "观察池" ~}}{{~ card_bg = "#eef2f7" ~}}{{~ card_border = "#d3dce8" ~}}{{~ end ~}}
   {{~ group_has_ann = false ~}}
   {{~ for s in g.Stocks ~}}{{~ if s.Announcements.size > 0 ~}}{{~ group_has_ann = true ~}}{{~ end ~}}{{~ end ~}}
   {{~ for s in g.Stocks ~}}
   {{~ hd = s.Holding ~}}
-  <section style="border:1px solid {{ if hd.CanBuy }}#e0483d{{ else }}#e5e5e5{{ end }};border-radius:10px;padding:12px 14px;margin:8px 0;">
+  <section style="background:{{ card_bg }};border:1px solid {{ if hd.CanBuy }}#e0483d{{ else }}{{ card_border }}{{ end }};{{ card_left }}border-radius:10px;padding:12px 14px;margin:8px 0;">
     <p style="margin:0;font-size:16px;font-weight:600;">{{ s.Quote.Name }} <span style="color:#888;font-size:12px;font-weight:400;">{{ s.Quote.Code }}</span> · {{ hd.CurrencySymbol }}{{ s.Quote.Price }}</p>
+    {{~ if hd.IsEtf ~}}
+    <p style="margin:6px 0 0;font-size:14px;color:#333;">基金规模 {{ if hd.TotalMarketCapCnyYi }}{{ hd.TotalMarketCapCnyYi | math.round 0 }} 亿{{ else }}—{{ end }} ｜ 买入价 {{ if hd.IdealBuyPrice }}{{ hd.CurrencySymbol }}{{ hd.IdealBuyPrice }}{{ else }}—{{ end }} ｜ 卖出价 {{ if hd.SellPrice }}{{ hd.CurrencySymbol }}{{ hd.SellPrice }}{{ else }}—{{ end }} ｜ 年内 {{ if hd.YtdReturnPercent }}{{ hd.YtdReturnPercent | math.round 2 }}%{{ else }}—{{ end }}</p>
+    {{~ else ~}}
     <p style="margin:6px 0 0;font-size:14px;color:#333;">当前市值 {{ if hd.TotalMarketCapCnyYi }}{{ hd.TotalMarketCapCnyYi | math.round 0 }} 亿{{ else }}—{{ end }} ｜ 理想买点 {{ if hd.IdealBuyYi }}{{ hd.IdealBuyYi | math.round 0 }} 亿{{ else }}—{{ end }} ｜ 卖点 {{ if hd.SellYi }}{{ hd.SellYi | math.round 0 }} 亿{{ else }}—{{ end }} ｜ 年内 {{ if hd.YtdReturnPercent }}{{ hd.YtdReturnPercent | math.round 2 }}%{{ else }}—{{ end }}</p>
+    {{~ end ~}}
     {{~ if hd.IsHolding ~}}
     <p style="margin:2px 0 0;font-size:14px;color:#333;">持股 {{ hd.Shares }} ｜ 成本 {{ hd.CurrencySymbol }}{{ hd.CostPrice }} ｜ 持仓市值 ¥{{ hd.HoldingValueCny | math.round 0 }} ｜ 比例 {{ if hd.HoldingRatioPercent }}{{ hd.HoldingRatioPercent | math.round 1 }}%{{ else }}—{{ end }}</p>
     <p style="margin:2px 0 0;font-size:14px;color:#333;">对成本盈亏 {{ if hd.CostProfitCny }}¥{{ hd.CostProfitCny | math.round 0 }}{{ if hd.CostReturnPercent }}（{{ hd.CostReturnPercent | math.round 2 }}%）{{ end }}{{ else }}—{{ end }}</p>

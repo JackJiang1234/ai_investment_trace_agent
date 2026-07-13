@@ -40,7 +40,8 @@ public class ScribanReportRendererTests
         html.Should().Contain("</html>");
         html.Should().Contain("核心持仓").And.Contain("观察池");
         html.Should().Contain("可以击球");
-        html.Should().Contain("class=\"card hit\""); // 击球卡片红框
+        html.Should().Contain("card core hit"); // 核心持仓 + 击球卡片
+        html.Should().Contain("card watch");    // 观察池卡片区分底色
         html.Should().Contain("贵州茅台").And.Contain("腾讯控股");
     }
 
@@ -94,6 +95,42 @@ public class ScribanReportRendererTests
 
         md.Should().Contain("分派实施公告");
         md.Should().NotContain("本周无新增重要公告");
+    }
+
+    [Fact]
+    public void Render_EtfCard_ShowsFundSizeAndPriceThresholds_NotMarketCap()
+    {
+        var etf = new StockAnalysis
+        {
+            Quote = TestReports.Quote("515170.SH", "食品饮料ETF华夏", 0.439m),
+            Holding = new HoldingMetrics
+            {
+                Group = "核心持仓",
+                SecurityType = SecurityType.Etf,
+                Currency = Currency.CNY,
+                Shares = 309400,
+                CostPrice = 0.56m,
+                TotalMarketCapCnyYi = 40m,
+                IdealBuyPrice = 0.50m,
+                SellPrice = 0.75m,
+                CanBuy = true,
+            },
+        };
+        IReadOnlyList<StockAnalysis> stocks = [etf];
+        var report = new DailyReport
+        {
+            Date = new DateOnly(2026, 7, 13),
+            Summary = PortfolioSummary.From(stocks),
+            Stocks = stocks,
+            HkdToCny = 0.87m,
+        };
+
+        var html = _renderer.Render(report, ReportFormat.Html);
+
+        html.Should().Contain("基金规模");       // ETF 用基金规模而非"当前市值"标签
+        html.Should().Contain("理想买入价");     // 价格口径
+        html.Should().Contain("可以击球");       // 0.439 < 0.50
+        html.Should().NotContain("理想买点");    // 不应出现股票市值口径标签
     }
 
     [Fact]

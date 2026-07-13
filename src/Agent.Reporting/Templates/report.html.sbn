@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>股票追踪周报 {{ DateText }}</title>
+<title>持仓跟踪周报 {{ DateText }}</title>
 <style>
   :root { color-scheme: light dark; }
   * { box-sizing: border-box; }
@@ -16,7 +16,9 @@
   .tile .label { color: #666; font-size: 0.78rem; }
   .tile .value { font-size: 1.25rem; font-weight: 600; }
   .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 0.85rem 1rem; margin: 0.6rem 0; }
-  .card.hit { border-color: #e0483d; box-shadow: 0 0 0 1px #e0483d33; }
+  .card.core { border-left: 3px solid #2aa198; }         /* 核心持仓：青色左描边 */
+  .card.watch { background: #eef2f7; border-color: #d3dce8; } /* 观察池：灰蓝底 */
+  .card.hit { border-color: #e0483d; box-shadow: 0 0 0 1px #e0483d33; } /* 击球红框叠加 */
   .card .head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
   .card .nm { font-size: 1.05rem; font-weight: 600; }
   .card .cd { color: #888; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
@@ -43,6 +45,7 @@
   @media (prefers-color-scheme: dark) {
     body { color: #e5e5e5; background: #161616; }
     .tile, .card, .fin { background: #232323; border-color: #383838; }
+    .card.watch { background: #1b2430; border-color: #33404f; }
     .fin { background: #1e1e1e; }
     .risk { background: #2e2020; border-color: #6a3a3a; }
     .buypanel { background: #2e1e1c; border-color: #e0483d; }
@@ -53,7 +56,7 @@
 </style>
 </head>
 <body>
-  <h1>股票追踪周报</h1>
+  <h1>持仓跟踪周报</h1>
   <div class="meta">{{ DateText }} · 周五收盘后自动生成</div>
 
   <h2>组合概览</h2>
@@ -72,7 +75,7 @@
   <h2>🔴 可以击球</h2>
   <ul class="buypanel">
     {{~ for s in Buyable ~}}
-    <li><strong>{{ s.Quote.Name }}</strong>（{{ s.Quote.Code }}）：当前市值 {{ s.Holding.TotalMarketCapCnyYi | math.round 0 }} 亿 &lt; 理想买点 {{ s.Holding.IdealBuyYi | math.round 0 }} 亿</li>
+    <li><strong>{{ s.Quote.Name }}</strong>（{{ s.Quote.Code }}）：{{ if s.Holding.IsEtf }}现价 {{ s.Holding.CurrencySymbol }}{{ s.Quote.Price }} &lt; 理想买入价 {{ s.Holding.CurrencySymbol }}{{ s.Holding.IdealBuyPrice }}{{ else }}当前市值 {{ s.Holding.TotalMarketCapCnyYi | math.round 0 }} 亿 &lt; 理想买点 {{ s.Holding.IdealBuyYi | math.round 0 }} 亿{{ end }}</li>
     {{~ end ~}}
   </ul>
   {{~ end ~}}
@@ -88,19 +91,27 @@
 
   {{~ for g in Groups ~}}
   <h2>{{ g.Name }}</h2>
+  {{~ group_cls = "other" ~}}
+  {{~ if g.Name == "核心持仓" ~}}{{~ group_cls = "core" ~}}{{~ else if g.Name == "观察池" ~}}{{~ group_cls = "watch" ~}}{{~ end ~}}
   {{~ group_has_ann = false ~}}
   {{~ for s in g.Stocks ~}}{{~ if s.Announcements.size > 0 ~}}{{~ group_has_ann = true ~}}{{~ end ~}}{{~ end ~}}
   {{~ for s in g.Stocks ~}}
   {{~ hd = s.Holding ~}}
-  <div class="card {{ if hd.CanBuy }}hit{{ end }}">
+  <div class="card {{ group_cls }}{{ if hd.CanBuy }} hit{{ end }}">
     <div class="head">
       <span><span class="nm">{{ s.Quote.Name }}</span> <span class="cd">{{ s.Quote.Code }}</span></span>
       <span class="px">{{ hd.CurrencySymbol }}{{ s.Quote.Price }}</span>
     </div>
     <div class="grid">
+      {{~ if hd.IsEtf ~}}
+      <span class="k">基金规模</span><span class="v">{{ if hd.TotalMarketCapCnyYi }}{{ hd.TotalMarketCapCnyYi | math.round 0 }} 亿{{ else }}<span class="muted">—</span>{{ end }}</span>
+      <span class="k">理想买入价</span><span class="v">{{ if hd.IdealBuyPrice }}{{ hd.CurrencySymbol }}{{ hd.IdealBuyPrice }}{{ else }}<span class="muted">—</span>{{ end }}</span>
+      <span class="k">卖出价</span><span class="v">{{ if hd.SellPrice }}{{ hd.CurrencySymbol }}{{ hd.SellPrice }}{{ else }}<span class="muted">—</span>{{ end }}</span>
+      {{~ else ~}}
       <span class="k">当前市值</span><span class="v">{{ if hd.TotalMarketCapCnyYi }}{{ hd.TotalMarketCapCnyYi | math.round 0 }} 亿{{ else }}<span class="muted">—</span>{{ end }}</span>
       <span class="k">理想买点</span><span class="v">{{ if hd.IdealBuyYi }}{{ hd.IdealBuyYi | math.round 0 }} 亿{{ else }}<span class="muted">—</span>{{ end }}</span>
       <span class="k">1年内卖点</span><span class="v">{{ if hd.SellYi }}{{ hd.SellYi | math.round 0 }} 亿{{ else }}<span class="muted">—</span>{{ end }}</span>
+      {{~ end ~}}
       <span class="k">年内涨幅</span><span class="v {{ if hd.YtdReturnPercent > 0 }}up{{ else if hd.YtdReturnPercent < 0 }}down{{ end }}">{{ if hd.YtdReturnPercent }}{{ hd.YtdReturnPercent | math.round 2 }}%{{ else }}<span class="muted">—</span>{{ end }}</span>
       {{~ if hd.IsHolding ~}}
       <span class="k">持股份数</span><span class="v">{{ hd.Shares }}</span>

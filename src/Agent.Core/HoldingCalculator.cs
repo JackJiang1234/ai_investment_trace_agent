@@ -19,6 +19,7 @@ public static class HoldingCalculator
         Quote quote, StockConfig config, CurrencyConverter converter, decimal? yearStartClose)
     {
         var currency = quote.Code.Market.ToCurrency();
+        var securityType = SecurityTypeResolver.Resolve(config, quote.Code);
 
         // 当前市值：公司总市值折人民币后换算亿元；无数据（0）为 null。
         decimal? totalCapCnyYi = quote.TotalMarketCap > 0
@@ -51,14 +52,25 @@ public static class HoldingCalculator
             ? (quote.Price - baseClose) / baseClose * 100m
             : null;
 
-        var canBuy = config.IdealBuyMarketCapYi is { } buy
+        // 买卖点按类型分口径：股票比公司总市值(折人民币)，ETF 比单位价格(原币种)。
+        bool canBuy, shouldSell;
+        if (securityType == SecurityType.Etf)
+        {
+            canBuy = config.IdealBuyPrice is { } bp && quote.Price < bp;
+            shouldSell = config.SellPrice is { } sp && quote.Price > sp;
+        }
+        else
+        {
+            canBuy = config.IdealBuyMarketCapYi is { } buy
                      && totalCapCnyYi is { } capB && capB < buy;
-        var shouldSell = config.SellMarketCapYi is { } sell
+            shouldSell = config.SellMarketCapYi is { } sell
                          && totalCapCnyYi is { } capS && capS > sell;
+        }
 
         return new HoldingMetrics
         {
             Group = config.Group,
+            SecurityType = securityType,
             Currency = currency,
             Shares = config.Shares,
             CostPrice = config.CostPrice,
@@ -70,6 +82,8 @@ public static class HoldingCalculator
             CostReturnPercent = costReturnPct,
             IdealBuyYi = config.IdealBuyMarketCapYi,
             SellYi = config.SellMarketCapYi,
+            IdealBuyPrice = config.IdealBuyPrice,
+            SellPrice = config.SellPrice,
             YtdReturnPercent = ytd,
             CanBuy = canBuy,
             ShouldSell = shouldSell,
