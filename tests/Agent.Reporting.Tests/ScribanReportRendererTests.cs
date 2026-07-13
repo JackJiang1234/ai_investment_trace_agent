@@ -40,7 +40,8 @@ public class ScribanReportRendererTests
         html.Should().Contain("</html>");
         html.Should().Contain("核心持仓").And.Contain("观察池");
         html.Should().Contain("可以击球");
-        html.Should().Contain("class=\"card hit\""); // 击球卡片红框
+        html.Should().Contain("card core hit"); // 核心持仓 + 击球卡片
+        html.Should().Contain("card watch");    // 观察池卡片区分底色
         html.Should().Contain("贵州茅台").And.Contain("腾讯控股");
     }
 
