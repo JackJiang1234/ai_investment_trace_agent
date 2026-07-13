@@ -72,7 +72,7 @@
   <h2>🔴 可以击球</h2>
   <ul class="buypanel">
     {{~ for s in Buyable ~}}
-    <li><strong>{{ s.Quote.Name }}</strong>（{{ s.Quote.Code }}）：当前市值 {{ s.Holding.TotalMarketCapCnyYi | math.round 0 }} 亿 &lt; 理想买点 {{ s.Holding.IdealBuyYi | math.round 0 }} 亿</li>
+    <li><strong>{{ s.Quote.Name }}</strong>（{{ s.Quote.Code }}）：{{ if s.Holding.IsEtf }}现价 {{ s.Holding.CurrencySymbol }}{{ s.Quote.Price }} &lt; 理想买入价 {{ s.Holding.CurrencySymbol }}{{ s.Holding.IdealBuyPrice }}{{ else }}当前市值 {{ s.Holding.TotalMarketCapCnyYi | math.round 0 }} 亿 &lt; 理想买点 {{ s.Holding.IdealBuyYi | math.round 0 }} 亿{{ end }}</li>
     {{~ end ~}}
   </ul>
   {{~ end ~}}
@@ -98,9 +98,15 @@
       <span class="px">{{ hd.CurrencySymbol }}{{ s.Quote.Price }}</span>
     </div>
     <div class="grid">
+      {{~ if hd.IsEtf ~}}
+      <span class="k">基金规模</span><span class="v">{{ if hd.TotalMarketCapCnyYi }}{{ hd.TotalMarketCapCnyYi | math.round 0 }} 亿{{ else }}<span class="muted">—</span>{{ end }}</span>
+      <span class="k">理想买入价</span><span class="v">{{ if hd.IdealBuyPrice }}{{ hd.CurrencySymbol }}{{ hd.IdealBuyPrice }}{{ else }}<span class="muted">—</span>{{ end }}</span>
+      <span class="k">卖出价</span><span class="v">{{ if hd.SellPrice }}{{ hd.CurrencySymbol }}{{ hd.SellPrice }}{{ else }}<span class="muted">—</span>{{ end }}</span>
+      {{~ else ~}}
       <span class="k">当前市值</span><span class="v">{{ if hd.TotalMarketCapCnyYi }}{{ hd.TotalMarketCapCnyYi | math.round 0 }} 亿{{ else }}<span class="muted">—</span>{{ end }}</span>
       <span class="k">理想买点</span><span class="v">{{ if hd.IdealBuyYi }}{{ hd.IdealBuyYi | math.round 0 }} 亿{{ else }}<span class="muted">—</span>{{ end }}</span>
       <span class="k">1年内卖点</span><span class="v">{{ if hd.SellYi }}{{ hd.SellYi | math.round 0 }} 亿{{ else }}<span class="muted">—</span>{{ end }}</span>
+      {{~ end ~}}
       <span class="k">年内涨幅</span><span class="v {{ if hd.YtdReturnPercent > 0 }}up{{ else if hd.YtdReturnPercent < 0 }}down{{ end }}">{{ if hd.YtdReturnPercent }}{{ hd.YtdReturnPercent | math.round 2 }}%{{ else }}<span class="muted">—</span>{{ end }}</span>
       {{~ if hd.IsHolding ~}}
       <span class="k">持股份数</span><span class="v">{{ hd.Shares }}</span>

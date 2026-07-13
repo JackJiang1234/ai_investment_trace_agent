@@ -13,7 +13,8 @@ public class ConfigBindingTests
       "Agent": {
         "Stocks": [
           { "Code": "600519.SH", "Group": "核心持仓", "Shares": 100, "CostPrice": 1450.0, "IdealBuyMarketCapYi": 18000, "SellMarketCapYi": 28000 },
-          { "Code": "00700.HK", "Group": "观察池", "IdealBuyMarketCapYi": 27000 }
+          { "Code": "00700.HK", "Group": "观察池", "IdealBuyMarketCapYi": 27000 },
+          { "Code": "515170.SH", "Group": "核心持仓", "SecurityType": "Etf", "Shares": 100000, "CostPrice": 0.56, "IdealBuyPrice": 0.42, "SellPrice": 0.70 }
         ],
         "Announcements": { "LookbackDays": 7 },
         "Currency": { "BaseCurrency": "CNY", "StaticRates": { "HKD": 0.87 } },
@@ -71,5 +72,16 @@ public class ConfigBindingTests
     public void Binds_WeChatHtmlFormat()
     {
         Bind().Report.Formats.Should().Contain(ReportFormat.WeChatHtml);
+    }
+
+    [Fact]
+    public void Binds_EtfSecurityTypeAndPriceThresholds()
+    {
+        var etf = Bind().Stocks[2];
+
+        etf.SecurityType.Should().Be(SecurityType.Etf);
+        etf.IdealBuyPrice.Should().Be(0.42m);
+        etf.SellPrice.Should().Be(0.70m);
+        etf.IdealBuyMarketCapYi.Should().BeNull();
     }
 }

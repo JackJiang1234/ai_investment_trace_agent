@@ -11,7 +11,7 @@
 ## 🔴 可以击球
 
 {{~ for s in Buyable ~}}
-- **{{ s.Quote.Name }}**（{{ s.Quote.Code }}）：当前市值 {{ s.Holding.TotalMarketCapCnyYi | math.round 0 }} 亿 < 理想买点 {{ s.Holding.IdealBuyYi | math.round 0 }} 亿
+- **{{ s.Quote.Name }}**（{{ s.Quote.Code }}）：{{ if s.Holding.IsEtf }}现价 {{ s.Holding.CurrencySymbol }}{{ s.Quote.Price }} < 理想买入价 {{ s.Holding.CurrencySymbol }}{{ s.Holding.IdealBuyPrice }}{{ else }}当前市值 {{ s.Holding.TotalMarketCapCnyYi | math.round 0 }} 亿 < 理想买点 {{ s.Holding.IdealBuyYi | math.round 0 }} 亿{{ end }}
 {{~ end ~}}
 {{~ end ~}}
 
@@ -33,8 +33,13 @@
 ### {{ s.Quote.Name }}（{{ s.Quote.Code }}） {{ if hd.CanBuy }}🔴 可以击球{{ end }}{{ if hd.ShouldSell }}｜可考虑卖出{{ end }}
 
 - 现价：{{ hd.CurrencySymbol }}{{ s.Quote.Price }}
+{{~ if hd.IsEtf ~}}
+- 基金规模：{{ if hd.TotalMarketCapCnyYi }}{{ hd.TotalMarketCapCnyYi | math.round 0 }} 亿人民币{{ else }}—{{ end }}
+- 理想买入价 / 卖出价：{{ if hd.IdealBuyPrice }}{{ hd.CurrencySymbol }}{{ hd.IdealBuyPrice }}{{ else }}—{{ end }} / {{ if hd.SellPrice }}{{ hd.CurrencySymbol }}{{ hd.SellPrice }}{{ else }}—{{ end }}
+{{~ else ~}}
 - 当前市值：{{ if hd.TotalMarketCapCnyYi }}{{ hd.TotalMarketCapCnyYi | math.round 0 }} 亿人民币{{ else }}—{{ end }}
 - 理想买点 / 1年内卖点：{{ if hd.IdealBuyYi }}{{ hd.IdealBuyYi | math.round 0 }} 亿{{ else }}—{{ end }} / {{ if hd.SellYi }}{{ hd.SellYi | math.round 0 }} 亿{{ else }}—{{ end }}
+{{~ end ~}}
 - 年内涨幅：{{ if hd.YtdReturnPercent }}{{ hd.YtdReturnPercent | math.round 2 }}%{{ else }}—{{ end }}
 {{~ if hd.IsHolding ~}}
 - 持股份数 / 成本价：{{ hd.Shares }} / {{ hd.CurrencySymbol }}{{ hd.CostPrice }}
