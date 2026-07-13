@@ -64,6 +64,8 @@
     <div class="tile"><div class="label">组合总持仓市值(元)</div><div class="value">{{ Summary.TotalHoldingValueCny | math.round 0 | math.format "N0" }}</div></div>
     <div class="tile"><div class="label">年度收益(元)</div><div class="value {{ if Summary.YtdProfitCny > 0 }}up{{ else if Summary.YtdProfitCny < 0 }}down{{ end }}">{{ Summary.YtdProfitCny | math.round 0 | math.format "N0" }}</div></div>
     <div class="tile"><div class="label">年度收益率</div><div class="value {{ if Summary.YtdReturnPercent > 0 }}up{{ else if Summary.YtdReturnPercent < 0 }}down{{ end }}">{{ if Summary.YtdReturnPercent }}{{ Summary.YtdReturnPercent | math.round 2 }}%{{ else }}—{{ end }}</div></div>
+    <div class="tile"><div class="label">持仓总收益(元,对成本)</div><div class="value {{ if Summary.CostProfitCny > 0 }}up{{ else if Summary.CostProfitCny < 0 }}down{{ end }}">{{ Summary.CostProfitCny | math.round 0 | math.format "N0" }}</div></div>
+    <div class="tile"><div class="label">持仓总收益率(对成本)</div><div class="value {{ if Summary.CostReturnPercent > 0 }}up{{ else if Summary.CostReturnPercent < 0 }}down{{ end }}">{{ if Summary.CostReturnPercent }}{{ Summary.CostReturnPercent | math.round 2 }}%{{ else }}—{{ end }}</div></div>
   </div>
 
   {{~ if Buyable.size > 0 ~}}
@@ -105,6 +107,7 @@
       <span class="k">成本价</span><span class="v">{{ hd.CurrencySymbol }}{{ hd.CostPrice }}</span>
       <span class="k">持仓市值</span><span class="v">¥{{ hd.HoldingValueCny | math.round 0 | math.format "N0" }}</span>
       <span class="k">持股比例</span><span class="v">{{ if hd.HoldingRatioPercent }}{{ hd.HoldingRatioPercent | math.round 1 }}%{{ else }}<span class="muted">—</span>{{ end }}</span>
+      <span class="k">对成本盈亏</span><span class="v {{ if hd.CostProfitCny > 0 }}up{{ else if hd.CostProfitCny < 0 }}down{{ end }}">{{ if hd.CostProfitCny }}¥{{ hd.CostProfitCny | math.round 0 | math.format "N0" }}{{ if hd.CostReturnPercent }} ({{ hd.CostReturnPercent | math.round 2 }}%){{ end }}{{ else }}<span class="muted">—</span>{{ end }}</span>
       {{~ end ~}}
     </div>
     {{~ if hd.CanBuy || hd.ShouldSell ~}}

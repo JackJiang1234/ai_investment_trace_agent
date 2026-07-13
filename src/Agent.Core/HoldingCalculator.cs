@@ -35,6 +35,18 @@ public static class HoldingCalculator
             ? converter.ToCny(ysClose * sh, currency)
             : null;
 
+        // 对成本：成本市值与盈亏金额折人民币（需份数+成本价）；收益率按原币种（不受汇率影响）。
+        var hasCostBasis = config.Shares is { } shForCost && config.CostPrice is { } cpForValue;
+        decimal? costValueCny = hasCostBasis
+            ? converter.ToCny(config.CostPrice!.Value * config.Shares!.Value, currency)
+            : null;
+        decimal? costProfitCny = hasCostBasis
+            ? converter.ToCny((quote.Price - config.CostPrice!.Value) * config.Shares!.Value, currency)
+            : null;
+        decimal? costReturnPct = config.CostPrice is { } cp && cp > 0
+            ? (quote.Price - cp) / cp * 100m
+            : null;
+
         decimal? ytd = yearStartClose is { } baseClose && baseClose > 0
             ? (quote.Price - baseClose) / baseClose * 100m
             : null;
@@ -53,6 +65,9 @@ public static class HoldingCalculator
             TotalMarketCapCnyYi = totalCapCnyYi,
             HoldingValueCny = holdingValueCny,
             YearStartValueCny = yearStartValueCny,
+            CostValueCny = costValueCny,
+            CostProfitCny = costProfitCny,
+            CostReturnPercent = costReturnPct,
             IdealBuyYi = config.IdealBuyMarketCapYi,
             SellYi = config.SellMarketCapYi,
             YtdReturnPercent = ytd,

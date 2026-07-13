@@ -23,6 +23,12 @@ public sealed record PortfolioSummary
     /// <summary>年度收益率（%，年内 YTD）= 年度收益金额 ÷ 年初持仓总市值；无年初市值时为 null。</summary>
     public decimal? YtdReturnPercent { get; init; }
 
+    /// <summary>持仓总收益金额（元人民币，对成本）= Σ(现价−成本价)×份数（折人民币）。</summary>
+    public required decimal CostProfitCny { get; init; }
+
+    /// <summary>持仓总收益率（%，对成本）= 持仓总收益金额 ÷ 总成本市值；无成本市值时为 null。</summary>
+    public decimal? CostReturnPercent { get; init; }
+
     /// <summary>由个股分析汇总组合概览。</summary>
     public static PortfolioSummary From(IReadOnlyList<StockAnalysis> stocks)
     {
@@ -32,6 +38,8 @@ public sealed record PortfolioSummary
         decimal total = 0m;
         decimal yearStartTotal = 0m;
         decimal ytdProfit = 0m;
+        decimal costTotal = 0m;
+        decimal costProfit = 0m;
 
         foreach (var s in stocks)
         {
@@ -54,6 +62,13 @@ public sealed record PortfolioSummary
                 }
             }
 
+            // 对成本收益仅在有成本市值时纳入（缺成本价的持仓不计）。
+            if (h.CostValueCny is { } costValue && h.CostProfitCny is { } costGain)
+            {
+                costTotal += costValue;
+                costProfit += costGain;
+            }
+
             if (h.CanBuy) buy++;
             if (h.ShouldSell) sell++;
         }
@@ -66,6 +81,8 @@ public sealed record PortfolioSummary
             TotalHoldingValueCny = total,
             YtdProfitCny = ytdProfit,
             YtdReturnPercent = yearStartTotal > 0m ? ytdProfit / yearStartTotal * 100m : null,
+            CostProfitCny = costProfit,
+            CostReturnPercent = costTotal > 0m ? costProfit / costTotal * 100m : null,
         };
     }
 }

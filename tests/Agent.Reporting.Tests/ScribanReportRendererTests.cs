@@ -18,6 +18,7 @@ public class ScribanReportRendererTests
         md.Should().Contain("核心持仓").And.Contain("观察池"); // 分组
         md.Should().Contain("贵州茅台").And.Contain("腾讯控股");
         md.Should().Contain("年度收益"); // 组合概览新增年度收益金额/收益率
+        md.Should().Contain("持仓总收益"); // 组合概览新增对成本收益
     }
 
     [Fact]
@@ -26,6 +27,7 @@ public class ScribanReportRendererTests
         var md = _renderer.Render(TestReports.Sample(), ReportFormat.Markdown);
 
         md.Should().Contain("持股份数");     // 核心持仓有持仓明细
+        md.Should().Contain("对成本盈亏");   // 核心持仓卡片显示对成本盈亏
         md.Should().Contain("可以击球");     // 茅台命中击球
     }
 

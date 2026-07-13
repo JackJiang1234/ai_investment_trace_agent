@@ -5,7 +5,8 @@
   <p style="font-size:16px;font-weight:600;border-left:4px solid #888;padding-left:8px;margin:16px 0 6px;">组合概览</p>
   <p style="margin:0 0 4px;">持仓 <strong>{{ Summary.HoldingCount }}</strong> 只 · 可击球 <strong style="color:#c0392b;">{{ Summary.BuySignalCount }}</strong> · 到卖点 <strong style="color:#1e8449;">{{ Summary.SellSignalCount }}</strong></p>
   <p style="margin:0 0 4px;">组合总持仓市值：<strong>{{ Summary.TotalHoldingValueCny | math.round 0 }}</strong> 元人民币</p>
-  <p style="margin:0 0 8px;">年度收益（年内）：<strong style="color:{{ if Summary.YtdProfitCny > 0 }}#c0392b{{ else if Summary.YtdProfitCny < 0 }}#1e8449{{ else }}#333{{ end }};">{{ Summary.YtdProfitCny | math.round 0 }}</strong> 元人民币{{ if Summary.YtdReturnPercent }}（<strong style="color:{{ if Summary.YtdReturnPercent > 0 }}#c0392b{{ else }}#1e8449{{ end }};">{{ Summary.YtdReturnPercent | math.round 2 }}%</strong>）{{ end }}</p>
+  <p style="margin:0 0 4px;">年度收益（年内）：<strong style="color:{{ if Summary.YtdProfitCny > 0 }}#c0392b{{ else if Summary.YtdProfitCny < 0 }}#1e8449{{ else }}#333{{ end }};">{{ Summary.YtdProfitCny | math.round 0 }}</strong> 元人民币{{ if Summary.YtdReturnPercent }}（<strong style="color:{{ if Summary.YtdReturnPercent > 0 }}#c0392b{{ else }}#1e8449{{ end }};">{{ Summary.YtdReturnPercent | math.round 2 }}%</strong>）{{ end }}</p>
+  <p style="margin:0 0 8px;">持仓总收益（对成本）：<strong style="color:{{ if Summary.CostProfitCny > 0 }}#c0392b{{ else if Summary.CostProfitCny < 0 }}#1e8449{{ else }}#333{{ end }};">{{ Summary.CostProfitCny | math.round 0 }}</strong> 元人民币{{ if Summary.CostReturnPercent }}（<strong style="color:{{ if Summary.CostReturnPercent > 0 }}#c0392b{{ else }}#1e8449{{ end }};">{{ Summary.CostReturnPercent | math.round 2 }}%</strong>）{{ end }}</p>
 
   {{~ if Buyable.size > 0 ~}}
   <p style="font-size:16px;font-weight:600;border-left:4px solid #e0483d;padding-left:8px;margin:16px 0 6px;">🔴 可以击球</p>
@@ -36,6 +37,7 @@
     <p style="margin:6px 0 0;font-size:14px;color:#333;">当前市值 {{ if hd.TotalMarketCapCnyYi }}{{ hd.TotalMarketCapCnyYi | math.round 0 }} 亿{{ else }}—{{ end }} ｜ 理想买点 {{ if hd.IdealBuyYi }}{{ hd.IdealBuyYi | math.round 0 }} 亿{{ else }}—{{ end }} ｜ 卖点 {{ if hd.SellYi }}{{ hd.SellYi | math.round 0 }} 亿{{ else }}—{{ end }} ｜ 年内 {{ if hd.YtdReturnPercent }}{{ hd.YtdReturnPercent | math.round 2 }}%{{ else }}—{{ end }}</p>
     {{~ if hd.IsHolding ~}}
     <p style="margin:2px 0 0;font-size:14px;color:#333;">持股 {{ hd.Shares }} ｜ 成本 {{ hd.CurrencySymbol }}{{ hd.CostPrice }} ｜ 持仓市值 ¥{{ hd.HoldingValueCny | math.round 0 }} ｜ 比例 {{ if hd.HoldingRatioPercent }}{{ hd.HoldingRatioPercent | math.round 1 }}%{{ else }}—{{ end }}</p>
+    <p style="margin:2px 0 0;font-size:14px;color:#333;">对成本盈亏 {{ if hd.CostProfitCny }}¥{{ hd.CostProfitCny | math.round 0 }}{{ if hd.CostReturnPercent }}（{{ hd.CostReturnPercent | math.round 2 }}%）{{ end }}{{ else }}—{{ end }}</p>
     {{~ end ~}}
     {{~ if hd.CanBuy || hd.ShouldSell ~}}
     <p style="margin:6px 0 0;">

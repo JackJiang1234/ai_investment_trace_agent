@@ -5,6 +5,7 @@
 - 持仓 **{{ Summary.HoldingCount }}** 只 · 可击球 **{{ Summary.BuySignalCount }}** · 到卖点 **{{ Summary.SellSignalCount }}**
 - 组合总持仓市值：**{{ Summary.TotalHoldingValueCny | math.round 0 }}** 元人民币
 - 年度收益（年内）：**{{ Summary.YtdProfitCny | math.round 0 }}** 元人民币{{ if Summary.YtdReturnPercent }}（**{{ Summary.YtdReturnPercent | math.round 2 }}%**）{{ end }}
+- 持仓总收益（对成本）：**{{ Summary.CostProfitCny | math.round 0 }}** 元人民币{{ if Summary.CostReturnPercent }}（**{{ Summary.CostReturnPercent | math.round 2 }}%**）{{ end }}
 
 {{~ if Buyable.size > 0 ~}}
 ## 🔴 可以击球
@@ -38,6 +39,7 @@
 {{~ if hd.IsHolding ~}}
 - 持股份数 / 成本价：{{ hd.Shares }} / {{ hd.CurrencySymbol }}{{ hd.CostPrice }}
 - 持仓市值 / 持股比例：¥{{ hd.HoldingValueCny | math.round 0 }} / {{ if hd.HoldingRatioPercent }}{{ hd.HoldingRatioPercent | math.round 1 }}%{{ else }}—{{ end }}
+- 对成本盈亏：{{ if hd.CostProfitCny }}¥{{ hd.CostProfitCny | math.round 0 }}{{ if hd.CostReturnPercent }}（{{ hd.CostReturnPercent | math.round 2 }}%）{{ end }}{{ else }}—{{ end }}
 {{~ end ~}}
 {{~ if s.Financials && s.Financials.Snapshot ~}}
 {{~ fs = s.Financials.Snapshot ~}}
