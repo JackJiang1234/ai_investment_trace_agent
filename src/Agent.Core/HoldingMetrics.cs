@@ -27,6 +27,15 @@ public sealed record HoldingMetrics
     /// <summary>年初持仓市值（元人民币）= 年初首个交易日收盘 × 持股份数（折人民币）；无持股或无年初收盘为 null。</summary>
     public decimal? YearStartValueCny { get; init; }
 
+    /// <summary>成本市值（元人民币）= 成本价 × 持股份数（折人民币）；无持股或无成本价为 null。</summary>
+    public decimal? CostValueCny { get; init; }
+
+    /// <summary>对成本盈亏金额（元人民币）=（现价 − 成本价）× 份数（折人民币）；无持股或无成本价为 null。</summary>
+    public decimal? CostProfitCny { get; init; }
+
+    /// <summary>对成本收益率（%，原币种，不受汇率影响）=（现价 − 成本价）÷ 成本价；无成本价或成本价≤0 为 null。</summary>
+    public decimal? CostReturnPercent { get; init; }
+
     /// <summary>理想买点（亿元人民币）。</summary>
     public decimal? IdealBuyYi { get; init; }
 

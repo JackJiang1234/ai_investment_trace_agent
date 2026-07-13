@@ -24,7 +24,7 @@ public class PortfolioSummaryTests
 
     private static StockAnalysis Stock(
         string code, decimal? holdingValueCny, bool canBuy = false, bool shouldSell = false,
-        decimal? yearStartValueCny = null) => new()
+        decimal? yearStartValueCny = null, decimal? costValueCny = null, decimal? costProfitCny = null) => new()
     {
         Quote = Quote(code),
         Holding = new HoldingMetrics
@@ -32,6 +32,8 @@ public class PortfolioSummaryTests
             Currency = Currency.CNY,
             HoldingValueCny = holdingValueCny,
             YearStartValueCny = yearStartValueCny,
+            CostValueCny = costValueCny,
+            CostProfitCny = costProfitCny,
             CanBuy = canBuy,
             ShouldSell = shouldSell,
         },
@@ -70,6 +72,31 @@ public class PortfolioSummaryTests
     }
 
     [Fact]
+    public void From_ComputesCostProfitAndReturn()
+    {
+        // A: 成本 100000 盈亏 +20000; B: 成本 50000 盈亏 -5000
+        // 合计盈亏 15000, 总成本 150000 → 10%
+        var summary = PortfolioSummary.From(
+        [
+            Stock("600519.SH", holdingValueCny: 120000m, costValueCny: 100000m, costProfitCny: 20000m),
+            Stock("00700.HK", holdingValueCny: 54000m, costValueCny: 50000m, costProfitCny: -5000m),
+            Stock("00388.HK", holdingValueCny: null),   // 观察池：不计入
+        ]);
+
+        summary.CostProfitCny.Should().Be(15000m);
+        summary.CostReturnPercent.Should().Be(10m);
+    }
+
+    [Fact]
+    public void From_NoCostData_CostReturnIsNull()
+    {
+        var summary = PortfolioSummary.From([Stock("600519.SH", holdingValueCny: 120000m)]);
+
+        summary.CostProfitCny.Should().Be(0m);
+        summary.CostReturnPercent.Should().BeNull();
+    }
+
+    [Fact]
     public void From_NoYearStartData_YtdReturnIsNull()
     {
         var summary = PortfolioSummary.From([Stock("600519.SH", holdingValueCny: 120000m)]);
@@ -89,5 +116,7 @@ public class PortfolioSummaryTests
         summary.TotalHoldingValueCny.Should().Be(0m);
         summary.YtdProfitCny.Should().Be(0m);
         summary.YtdReturnPercent.Should().BeNull();
+        summary.CostProfitCny.Should().Be(0m);
+        summary.CostReturnPercent.Should().BeNull();
     }
 }

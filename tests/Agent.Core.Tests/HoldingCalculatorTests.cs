@@ -46,6 +46,9 @@ public class HoldingCalculatorTests
         m.TotalMarketCapCnyYi.Should().Be(15000m);       // 1.5e12 / 1e8
         m.HoldingValueCny.Should().Be(120000m);           // 1200 * 100
         m.YearStartValueCny.Should().Be(160000m);         // 1600 * 100
+        m.CostValueCny.Should().Be(145000m);              // 1450 * 100
+        m.CostProfitCny.Should().Be(-25000m);             // (1200-1450) * 100
+        m.CostReturnPercent.Should().BeApproximately(-17.24m, 0.01m); // (1200-1450)/1450
         m.YtdReturnPercent.Should().Be(-25m);             // (1200-1600)/1600
         m.CanBuy.Should().BeTrue();                       // 15000 < 18000 → 击球
         m.ShouldSell.Should().BeFalse();                  // 15000 > 28000 假
@@ -75,6 +78,9 @@ public class HoldingCalculatorTests
         m.TotalMarketCapCnyYi.Should().Be(27000m);   // 3e12 * 0.9 / 1e8
         m.HoldingValueCny.Should().Be(54000m);        // 300 * 200 * 0.9
         m.YearStartValueCny.Should().Be(45000m);      // 250 * 200 * 0.9
+        m.CostValueCny.Should().Be(45000m);           // 250 * 200 * 0.9
+        m.CostProfitCny.Should().Be(9000m);           // (300-250) * 200 * 0.9
+        m.CostReturnPercent.Should().Be(20m);         // (300-250)/250, 原币种不受汇率影响
         m.YtdReturnPercent.Should().Be(20m);          // (300-250)/250, 币种自身不折
         m.CanBuy.Should().BeTrue();                   // 27000 < 30000 → 击球
         m.ShouldSell.Should().BeFalse();
@@ -95,6 +101,9 @@ public class HoldingCalculatorTests
 
         m.HoldingValueCny.Should().BeNull();          // 无持股
         m.YearStartValueCny.Should().BeNull();        // 无持股 → 年初持仓市值也为空
+        m.CostValueCny.Should().BeNull();             // 无成本价
+        m.CostProfitCny.Should().BeNull();
+        m.CostReturnPercent.Should().BeNull();
         m.Shares.Should().BeNull();
         m.TotalMarketCapCnyYi.Should().Be(1800m);     // 2e11 * 0.9 / 1e8
         m.CanBuy.Should().BeTrue();                    // 1800 < 3000 → 击球
