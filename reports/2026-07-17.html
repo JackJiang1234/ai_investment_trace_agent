@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>持仓跟踪周报 2026-07-17</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; margin: 0 auto; max-width: 720px; padding: 1rem; line-height: 1.5; color: #1a1a1a; background: #fafafa; }
+  h1 { font-size: 1.35rem; margin: 0 0 0.25rem; }
+  h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; border-left: 4px solid #888; padding-left: 0.5rem; }
+  .meta { color: #666; font-size: 0.85rem; margin-bottom: 1rem; }
+  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .tile { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 0.6rem 0.8rem; }
+  .tile .label { color: #666; font-size: 0.78rem; }
+  .tile .value { font-size: 1.25rem; font-weight: 600; }
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 0.85rem 1rem; margin: 0.6rem 0; }
+  .card.core { border-left: 3px solid #2aa198; }         /* 核心持仓：青色左描边 */
+  .card.watch { background: #eef2f7; border-color: #d3dce8; } /* 观察池：灰蓝底 */
+  .card.hit { border-color: #e0483d; box-shadow: 0 0 0 1px #e0483d33; } /* 击球红框叠加 */
+  .card .head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+  .card .nm { font-size: 1.05rem; font-weight: 600; }
+  .card .cd { color: #888; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .card .px { font-size: 1.05rem; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.15rem 0.75rem; margin-top: 0.5rem; font-size: 0.88rem; }
+  .grid .k { color: #666; }
+  .grid .v { text-align: right; font-variant-numeric: tabular-nums; }
+  .badge { display: inline-block; border-radius: 999px; padding: 0.05rem 0.55rem; font-size: 0.78rem; font-weight: 600; }
+  .badge.buy { background: #fdeceb; color: #c0392b; }
+  .badge.sell { background: #eaf5ee; color: #1e8449; }
+  .badges { margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .up { color: #c0392b; } .down { color: #27ae60; } .muted { color: #aaa; }
+  .risk { background: #fff0f0; border: 1px solid #e8a0a0; border-radius: 8px; padding: 0.5rem 0.9rem; }
+  .risk li { margin: 0.2rem 0; }
+  .buypanel { background: #fdeceb; border: 1px solid #e0483d; border-radius: 8px; padding: 0.5rem 0.9rem; }
+  .tag { display: inline-block; background: #eee; color: #444; border-radius: 4px; padding: 0 0.4rem; font-size: 0.72rem; }
+  .ann { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+  .ann li { margin: 0.15rem 0; font-size: 0.85rem; }
+  .ann-date { color: #888; font-variant-numeric: tabular-nums; }
+  .ann-none { color: #aaa; font-size: 0.85rem; margin: 0.3rem 0 0.6rem; }
+  .fin { margin-top: 0.5rem; font-size: 0.85rem; color: #444; background: #f4f6f8; border-radius: 6px; padding: 0.4rem 0.6rem; }
+  a { color: #2a6; text-decoration: none; }
+  .foot { color: #888; font-size: 0.78rem; margin-top: 1.5rem; border-top: 1px solid #e5e5e5; padding-top: 0.75rem; }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e5e5e5; background: #161616; }
+    .tile, .card, .fin { background: #232323; border-color: #383838; }
+    .card.watch { background: #1b2430; border-color: #33404f; }
+    .fin { background: #1e1e1e; }
+    .risk { background: #2e2020; border-color: #6a3a3a; }
+    .buypanel { background: #2e1e1c; border-color: #e0483d; }
+    .tag { background: #333; color: #ccc; }
+    .up { color: #ff6b6b; } .down { color: #51cf66; }
+    a { color: #6c9; }
+  }
+</style>
+</head>
+<body>
+  <h1>持仓跟踪周报</h1>
+  <div class="meta">2026-07-17 · 周五收盘后自动生成</div>
+
+  <h2>组合概览</h2>
+  <div class="tiles">
+    <div class="tile"><div class="label">持仓股票</div><div class="value">4</div></div>
+    <div class="tile"><div class="label">可击球</div><div class="value up">0</div></div>
+    <div class="tile"><div class="label">到卖点</div><div class="value down">0</div></div>
+    <div class="tile"><div class="label">组合总持仓市值(元)</div><div class="value">1,041,776</div></div>
+    <div class="tile"><div class="label">年度收益(元)</div><div class="value down">-261,677</div></div>
+    <div class="tile"><div class="label">年度收益率</div><div class="value down">-20.08%</div></div>
+    <div class="tile"><div class="label">持仓总收益(元,对成本)</div><div class="value up">70,536</div></div>
+    <div class="tile"><div class="label">持仓总收益率(对成本)</div><div class="value up">7.26%</div></div>
+  </div>
+
+
+
+  <h2>核心持仓</h2>
+  <div class="card core">
+    <div class="head">
+      <span><span class="nm">贵州茅台</span> <span class="cd">600519.SH</span></span>
+      <span class="px">¥1253</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">15664 亿</span>
+      <span class="k">理想买点</span><span class="v">15000 亿</span>
+      <span class="k">1年内卖点</span><span class="v">35000 亿</span>
+      <span class="k">年内涨幅</span><span class="v down">-10.37%</span>
+      <span class="k">持股份数</span><span class="v">300</span>
+      <span class="k">成本价</span><span class="v">¥1414.72</span>
+      <span class="k">持仓市值</span><span class="v">¥375,900</span>
+      <span class="k">持股比例</span><span class="v">36.1%</span>
+      <span class="k">对成本盈亏</span><span class="v down">¥-48,516 (-11.43%)</span>
+    </div>
+    <div class="fin">📊 2026年 一季报：营收 547 亿（同比 6.3%），净利 272.4 亿（同比 1.5%）</div>
+  </div>
+  <div class="card core">
+    <div class="head">
+      <span><span class="nm">腾讯控股</span> <span class="cd">00700.HK</span></span>
+      <span class="px">HK$461.6</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">36288 亿</span>
+      <span class="k">理想买点</span><span class="v">30000 亿</span>
+      <span class="k">1年内卖点</span><span class="v">60000 亿</span>
+      <span class="k">年内涨幅</span><span class="v down">-25.27%</span>
+      <span class="k">持股份数</span><span class="v">1000</span>
+      <span class="k">成本价</span><span class="v">HK$288.37</span>
+      <span class="k">持仓市值</span><span class="v">¥399,099</span>
+      <span class="k">持股比例</span><span class="v">38.3%</span>
+      <span class="k">对成本盈亏</span><span class="v up">¥149,775 (60.07%)</span>
+    </div>
+  </div>
+  <div class="card core">
+    <div class="head">
+      <span><span class="nm">分众传媒</span> <span class="cd">002027.SZ</span></span>
+      <span class="px">¥5</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">722 亿</span>
+      <span class="k">理想买点</span><span class="v">700 亿</span>
+      <span class="k">1年内卖点</span><span class="v">1100 亿</span>
+      <span class="k">年内涨幅</span><span class="v down">-29.08%</span>
+      <span class="k">持股份数</span><span class="v">25200</span>
+      <span class="k">成本价</span><span class="v">¥4.93</span>
+      <span class="k">持仓市值</span><span class="v">¥126,000</span>
+      <span class="k">持股比例</span><span class="v">12.1%</span>
+      <span class="k">对成本盈亏</span><span class="v up">¥1,764 (1.42%)</span>
+    </div>
+    <div class="fin">📊 2026年 一季报：营收 29.2 亿（同比 2%），净利 17.9 亿（同比 57.6%）</div>
+  </div>
+  <div class="card core">
+    <div class="head">
+      <span><span class="nm">食品饮料ETF华夏</span> <span class="cd">515170.SH</span></span>
+      <span class="px">¥0.455</span>
+    </div>
+    <div class="grid">
+      <span class="k">基金规模</span><span class="v">41 亿</span>
+      <span class="k">理想买入价</span><span class="v">¥0.42</span>
+      <span class="k">卖出价</span><span class="v">¥0.70</span>
+      <span class="k">年内涨幅</span><span class="v down">-18.31%</span>
+      <span class="k">持股份数</span><span class="v">309400</span>
+      <span class="k">成本价</span><span class="v">¥0.56</span>
+      <span class="k">持仓市值</span><span class="v">¥140,777</span>
+      <span class="k">持股比例</span><span class="v">13.5%</span>
+      <span class="k">对成本盈亏</span><span class="v down">¥-32,487 (-18.75%)</span>
+    </div>
+  </div>
+  <p class="ann-none">本周无新增重要公告</p>
+  <h2>观察池</h2>
+  <div class="card watch">
+    <div class="head">
+      <span><span class="nm">香港交易所</span> <span class="cd">00388.HK</span></span>
+      <span class="px">HK$391</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">4286 亿</span>
+      <span class="k">理想买点</span><span class="v">3000 亿</span>
+      <span class="k">1年内卖点</span><span class="v"><span class="muted">—</span></span>
+      <span class="k">年内涨幅</span><span class="v down">-4.47%</span>
+    </div>
+  </div>
+  <div class="card watch">
+    <div class="head">
+      <span><span class="nm">泡泡玛特</span> <span class="cd">09992.HK</span></span>
+      <span class="px">HK$163.6</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">1884 亿</span>
+      <span class="k">理想买点</span><span class="v">1500 亿</span>
+      <span class="k">1年内卖点</span><span class="v"><span class="muted">—</span></span>
+      <span class="k">年内涨幅</span><span class="v down">-14.06%</span>
+    </div>
+  </div>
+  <div class="card watch">
+    <div class="head">
+      <span><span class="nm">泸州老窖</span> <span class="cd">000568.SZ</span></span>
+      <span class="px">¥82.46</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">1214 亿</span>
+      <span class="k">理想买点</span><span class="v">1000 亿</span>
+      <span class="k">1年内卖点</span><span class="v"><span class="muted">—</span></span>
+      <span class="k">年内涨幅</span><span class="v down">-29.3%</span>
+    </div>
+    <div class="fin">📊 2026年 一季报：营收 80.3 亿（同比 -14.2%），净利 37.1 亿（同比 -19.2%）</div>
+  </div>
+  <div class="card watch">
+    <div class="head">
+      <span><span class="nm">XD长江电</span> <span class="cd">600900.SH</span></span>
+      <span class="px">¥27.99</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">6849 亿</span>
+      <span class="k">理想买点</span><span class="v">5100 亿</span>
+      <span class="k">1年内卖点</span><span class="v"><span class="muted">—</span></span>
+      <span class="k">年内涨幅</span><span class="v up">6.51%</span>
+    </div>
+    <div class="fin">📊 2026年 一季报：营收 181.1 亿（同比 6.4%），净利 67.6 亿（同比 30.5%）</div>
+  </div>
+  <div class="card watch">
+    <div class="head">
+      <span><span class="nm">美的集团</span> <span class="cd">000333.SZ</span></span>
+      <span class="px">¥82.71</span>
+    </div>
+    <div class="grid">
+      <span class="k">当前市值</span><span class="v">6304 亿</span>
+      <span class="k">理想买点</span><span class="v">5100 亿</span>
+      <span class="k">1年内卖点</span><span class="v"><span class="muted">—</span></span>
+      <span class="k">年内涨幅</span><span class="v up">10.34%</span>
+    </div>
+    <div class="fin">📊 2026年 一季报：营收 1315.8 亿（同比 2.5%），净利 126.7 亿（同比 2%）</div>
+    <ul class="ann">
+      <li><span class="ann-date">2026-07-14</span> <span class="tag">股权激励进展公告</span> <a href="https://data.eastmoney.com/notices/detail/000333/AN202607131826930580.html">美的集团:关于自主行权模式下第九期股权激励计划第三个行权期符合行权条件开始行权的提示性公告</a></li>
+    </ul>
+  </div>
+
+
+  <div class="foot">
+    汇率 1 HKD = 0.8646 CNY（实时）；港股市值/持仓/买卖点均按此折算为人民币，每股价格保留原币种。<br>
+    本报告由规则自动生成，仅供个人跟踪参考，不构成任何投资建议。
+  </div>
+</body>
+</html>
